@@ -12,7 +12,6 @@
 #include "brush.h"
 #include "canvas_camera_control.h"
 #include "palette.h"
-#include "palette_presave.h"
 #include "toolbar.h"
 #include "input.h"
 #include "savestate.h"
@@ -35,18 +34,6 @@
 #define PLAY_ROWS 3
 #define PLAY_FRAMES 1
 #define PLAY_FPS 6.0
- 
-// uncomment the used palette:
-// #define PALETTE grayscale
-// #define PALETTE grayscale_alpha
-// #define PALETTE grayscale
-// #define PALETTE pixilmatt
-// #define PALETTE slso8
-// #define PALETTE gameboy
-// #define PALETTE endesga32
-// #define PALETTE endesga64
-// #define PALETTE nes
- #define PALETTE aap64
 
 
 #define BG_COLOR_A "#aaaacc"
@@ -63,11 +50,6 @@
 //
 // end of options
 //
-
-
-// macro to call palette_presave_PALETTE()
-#define Cat(a, b) a ## b
-#define PalettePresave(pal) Cat(palette_presave_, pal)
 
 
 static void main_loop(float delta_time);
@@ -104,8 +86,6 @@ int main(int argc, char **argv) {
     input_init();
     savestate_init();
 
-    // calls "palette_presave_PALETTE();"
-    PalettePresave(PALETTE)();    
 
     // save start frame
     savestate_save();

@@ -155,6 +155,7 @@ C.includecache
 
 ## Tilec specific
 tilec
+tiles/*
 tilemap.png
 import.png
 

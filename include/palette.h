@@ -5,7 +5,8 @@
 #include "e/input.h"
 #include "color.h"
 
-#define PALETTE_MAX 80
+ // 64 + empty
+#define PALETTE_MAX 65
 
 void palette_init();
 
@@ -22,5 +23,6 @@ int palette_get_color();
 
 void palette_set_color(int index);
 
-void palette_set_colors(const Color_s *palette, int size);
+void palette_change_tiles(bool next);
+
 #endif //TILEC_PALETTE_H

@@ -16,29 +16,52 @@
 #include "savestate.h"
 #include "canvas.h"
 
+#define MAX_LAYERS 16
+
+#define TILE_COLS 8
+#define TILE_ROWS 8
+#define MAX_TILE_SETS 256
 
 struct CanvasGlobals_s canvas;
 
 static struct {
     mat4 pose;
+    mat4 mvp;
 
     Image *image;
     Image *last_image;
-    rRoSingle *render_objects;
     
     rRoSingle bg;
     rRoSingle grid;
     
     rRoBatch selection_border;
     
+    rRoBatch tiles[MAX_LAYERS][MAX_TILE_SETS];
+    GLuint tiles_textures[MAX_TILE_SETS];
+    int tiles_size;
+    
     int save_id;
 } L;
 
+static void init_tile_ro(rRoBatch *ro, GLuint tex) {
+	float w = 1.0 / L.image->cols;
+	float h = 1.0 / L.image->rows;
+	r_ro_batch_init(ro, L.image->cols * L.image->rows, &L.mvp.m00, tex);
+	for(int r=0; r<L.image->rows; r++) {
+		for(int c=0; c<L.image->cols; c++) {
+			u_pose_set_size(&ro->rects[r*L.image->cols + c].uv, 1.0/TILE_COLS, 1.0/TILE_ROWS);
+			ro->rects[r*L.image->cols + c].pose = u_pose_new_aa(-0.5+c*w, 0.5-r*h, w, h);
+		}
+	}
+}
 
 static void init_render_objects() {
-    for(int i=0; i<L.image->layers; i++) {
-        GLuint tex = r_texture_init(L.image->cols, L.image->rows, image_layer(L.image, i));
-        r_ro_single_init(&L.render_objects[i], canvas_camera.gl, tex);
+    for(int layer=0; layer<L.image->layers; layer++) {
+        GLuint tex = r_texture_init(L.image->cols, L.image->rows, image_layer(L.image, layer));
+        
+        for(int i=0; i<L.tiles_size; i++) {
+            init_tile_ro(&L.tiles[layer][i], L.tiles_textures[i]);
+        }
     }
 }
 
@@ -88,6 +111,37 @@ static void setup_selection() {
 	r_ro_batch_update(&L.selection_border);
 }
 
+
+static void set_pixel_tile(int layer, int c, int r) {
+	
+	for(int i=0; i<L.tiles_size; i++) {
+    	int idx = r * L.image->cols + c;
+        L.tiles[layer][i].rects[idx].color.a = 0;
+    }
+    
+	Color_s code = *image_pixel(L.image, layer, c, r);
+	
+    int tile_id = code.b;
+    
+    if(layer <= canvas.current_layer && tile_id>0 && tile_id<=L.tiles_size) {
+    	tile_id--;
+    	
+    	vec4 color = (vec4) {{1, 1, 1, (float) layer/canvas.current_layer}};
+    	
+    	float tile_x = (float) (code.a%TILE_COLS) / TILE_COLS;
+        float tile_y = (float) (code.a/TILE_COLS) / TILE_ROWS;
+         
+        int idx = r * L.image->cols + c;
+        u_pose_set_xy(&L.tiles[layer][tile_id].rects[idx].uv, tile_x, tile_y);
+        
+        float alpha = (layer+1.0) / (canvas.current_layer + 1.0);
+        L.tiles[layer][tile_id].rects[idx].color.a = alpha;
+    }
+    
+    
+}
+
+
 static void save_state(void **data, size_t *size);
 static void load_state(const void *data, size_t size);
 
@@ -97,9 +151,21 @@ void canvas_init(int cols, int rows, int layers, int grid_cols, int grid_rows) {
     L.save_id = savestate_register(save_state, load_state);
      
     L.pose = mat4_eye();
+    L.mvp = mat4_eye();
+    
+    // load tiles:
+    int tile_id = 0;
+    do {
+    	char file[128];
+	    sprintf(file, "tiles/tile_%02i.png", tile_id+1);
+	    L.tiles_textures[tile_id] = r_texture_init_file(file, NULL);
+	    tile_id++;
+    } while(L.tiles_textures[tile_id-1]);
+    L.tiles_size = tile_id - 1;
+    SDL_Log("Canvas loaded %i tiles", L.tiles_size);
+    
 
     L.image = image_new_zeros(layers, cols, rows);
-    L.render_objects = New0(rRoSingle , layers);
     canvas.current_layer = 0;
 
     init_render_objects();
@@ -152,12 +218,19 @@ void canvas_update(float dtime) {
     }
     
     u_pose_set(&L.pose, x, y, w, h, 0);
+    
+    L.mvp = mat4_mul_mat(Mat4(canvas_camera.gl), L.pose);
 
-    for(int i=0; i<L.image->layers; i++) {
-        r_texture_update(L.render_objects[i].tex, L.image->cols, L.image->rows, image_layer(L.image, i));
-
-        // set pose
-        L.render_objects[i].rect.pose = L.pose;
+    for(int layer=0; layer<=canvas.current_layer; layer++) {
+        for(int r=0; r<L.image->rows; r++) {
+        	for(int c=0; c<L.image->cols; c++) {
+        		set_pixel_tile(layer, c, r);
+        	}
+        }
+        
+        for(int i=0; i<L.tiles_size; i++) {
+        	r_ro_batch_update(&L.tiles[layer][i]);
+        }
     }
 
     L.grid.rect.pose = L.pose;
@@ -169,10 +242,10 @@ void canvas_update(float dtime) {
 void canvas_render() {
     r_ro_single_render(&L.bg);
 
-    for(int i=0; i<=canvas.current_layer; i++) {
-        float alpha = (i+1.0) / (canvas.current_layer + 1.0);
-        L.render_objects[i].rect.color.w = alpha;
-        r_ro_single_render(&L.render_objects[i]);
+    for(int layer=0; layer<=canvas.current_layer; layer++) {
+        for(int i=0; i<L.tiles_size; i++) {
+        	r_ro_batch_render(&L.tiles[layer][i]);
+        }
     }
 
     if(canvas.show_grid)
