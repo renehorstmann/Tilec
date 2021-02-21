@@ -25,21 +25,12 @@ static struct {
     int tile_id;
 } L;
 
-static int palette_cols() {
-    assert(camera_width() > 0 && camera_height() > 0 && "startup bug?");
-    if (camera_is_portrait_mode())
-        return (int) floorf(camera_width() / TILE_SIZE);
-    return (int) floorf(camera_height() / TILE_SIZE);
-}
 
 static bool pos_in_palette(vec2 pos) {
-    int cols = palette_cols();
     if (camera_is_portrait_mode()) {
-        int rows = 1 + PALETTE_MAX / cols;
-        return pos.y <= camera_bottom() + rows * TILE_SIZE;
+        return pos.y <= camera_bottom() + palette_get_hud_size();
     } else {
-        int rows = 1 + PALETTE_MAX / cols;
-        return pos.x >= camera_right() - rows * TILE_SIZE;
+        return pos.x >= camera_right() - palette_get_hud_size();
     }
 }
 
@@ -49,7 +40,7 @@ static mat4 setup_palette_color_pose(int r, int c) {
     u_pose_set_size(&pose, TILE_SIZE, TILE_SIZE);
     if (camera_is_portrait_mode()) {
         u_pose_set_xy(&pose, camera_left() + TILE_SIZE / 2 + c * TILE_SIZE,
-                      camera_bottom() + TILE_SIZE / 2 + r * TILE_SIZE);
+                      camera_bottom() + palette_get_hud_size() - TILE_SIZE / 2 - r * TILE_SIZE);
     } else {
         u_pose_set_xy(&pose, camera_right() - TILE_SIZE / 2 - r * TILE_SIZE,
                       camera_bottom() + TILE_SIZE / 2 + c * TILE_SIZE);
@@ -66,7 +57,7 @@ static bool load_tiles() {
 	if(!tex)
 	    return false;
 	r_ro_batch_set_texture(&L.palette_ro, tex);
-	for(int i=1; i<PALETTE_MAX;i++) {
+	for(int i=0; i<PALETTE_MAX;i++) {
 		L.palette[i].b = L.tile_id;
 	}
 	return true;
@@ -83,9 +74,9 @@ void palette_init() {
     
     r_ro_single_init(&L.select_ro, camera.gl, r_texture_init_file("res/palette_select.png", NULL));
     L.tile_id = 1;
-    L.palette[0] = (Color_s) {0, 0, 0, 0};
-    for(int i=1; i<PALETTE_MAX; i++) {
-    	L.palette[i] = (Color_s) {0, 0, L.tile_id, i-1};
+    L.palette[PALETTE_MAX-2] = (Color_s) {0, 0, 0, 0};
+    for(int i=0; i<PALETTE_MAX-1; i++) {
+    	L.palette[i] = (Color_s) {0, 0, L.tile_id, i};
     }
     
     load_tiles();
@@ -93,20 +84,20 @@ void palette_init() {
     // setup uvs
     float w = 1.0/TILE_COLS;
     float h = 1.0/TILE_ROWS;
-    int i=1;
+    int i=0;
     for(int r=0; r<TILE_ROWS; r++) {
     	for(int c=0; c<TILE_COLS; c++) {
     	    L.palette_ro.rects[i].uv = u_pose_new(c * w, r * h, w, h);
     	    i++;
         }
     }
-    L.palette_ro.rects[0].color = (vec4) {{0}};
+    L.palette_ro.rects[PALETTE_MAX-2].color = (vec4) {{0}};
     r_ro_batch_update(&L.palette_ro);
 }
 
 
 void palette_update(float dtime) {
-    int cols = palette_cols();
+    int cols = TILE_COLS;
     int last_row = (PALETTE_MAX - 1) / cols;
     for (int i = 0; i < PALETTE_MAX; i++) {
         int r = i / cols;
@@ -171,9 +162,7 @@ bool palette_pointer_event(ePointer_s pointer) {
 }
 
 float palette_get_hud_size() {
-	int cols = palette_cols();
-	int rows = 1 + PALETTE_MAX / cols;
-    return rows * TILE_SIZE;
+	return TILE_ROWS * TILE_SIZE;
 }
 
 int palette_get_color() {
