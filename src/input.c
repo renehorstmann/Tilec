@@ -23,11 +23,11 @@ static void pointer_event(ePointer_s pointer, void *user_data) {
     // only UP in all cases
     bool go = true;
     bool set_go = pointer.action == E_POINTER_UP;
-    
-    if(go && palette_pointer_event(hud_pointer))
-        go = set_go;
         
     if(go && toolbar_pointer_event(hud_pointer))
+        go = set_go;
+    
+    if(go && palette_pointer_event(hud_pointer))
         go = set_go;
 
     if(go && canvas_camera_control_pointer_event(c_pointer))

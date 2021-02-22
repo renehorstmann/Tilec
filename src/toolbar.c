@@ -63,6 +63,12 @@ static struct {
     rRoSingle layer_prev;
     rRoSingle layer_next;
     rRoText layer_num;
+    rRoText layer_title;
+    
+    rRoSingle tiles_prev;
+    rRoSingle tiles_next;
+    rRoText tiles_num;
+    rRoText tiles_title;
     
 } L;
 
@@ -78,12 +84,11 @@ static rRoSingle *tool_append(float x, float y, const char *btn_file) {
 
 static bool pos_in_toolbar(vec2 pos) {
     float size = toolbar.show_selection_copy_cut 
-            || toolbar.show_selection_ok
-            || canvas_image()->layers > 1 ?
+            || toolbar.show_selection_ok ?
             53 : 34;
     if (camera_is_portrait_mode())
-        return pos.y >= camera_top() - size;
-    return pos.x <= camera_left() + size;
+        return pos.y >= camera_top() - size || pos.y <= camera_bottom() + 60;
+    return pos.x <= camera_left() + size || pos.x >= camera_right() - 60;
 }
 
 static void unpress(rRoSingle **btns, int n, int ignore) {
@@ -107,6 +112,20 @@ static mat4 pose_wh(float col, float row, float w, float h) {
 
 static mat4 pose16(float col, float row) {
     return pose_wh(col, row, 16, 16);
+}
+
+static mat4 pose_wh_palette(float col, float row, float w, float h) {
+    mat4 pose = mat4_eye();
+    if (camera_is_portrait_mode()) {
+        u_pose_set(&pose, col, camera_bottom() + row, w, h, 0);
+    } else {
+        u_pose_set(&pose, camera_right() - row, col, w, h, 0);
+    }
+    return pose;
+}
+
+static mat4 pose16_palette(float col, float row) {
+    return pose_wh_palette(col, row, 16, 16);
 }
 
 
@@ -169,6 +188,19 @@ void toolbar_init() {
     
     r_ro_text_init_font55(&L.layer_num, 3, camera.gl);
     
+    r_ro_text_init_font55(&L.layer_title, 5, camera.gl);
+    r_ro_text_set_text(&L.layer_title, "layer");
+    
+    
+    // tiles
+    button_init(&L.tiles_prev, r_texture_init_file("res/button_prev.png", NULL));
+    
+    button_init(&L.tiles_next, r_texture_init_file("res/button_next.png", NULL));
+    
+    r_ro_text_init_font55(&L.tiles_num, 3, camera.gl);
+    
+    r_ro_text_init_font55(&L.tiles_title, 5, camera.gl);
+    r_ro_text_set_text(&L.tiles_title, "tiles");
 }
 
 void toolbar_update(float dtime) {
@@ -195,12 +227,21 @@ void toolbar_update(float dtime) {
     L.selection_ok.rect.pose = pose16(20, 43);
     
     // layer:
-    L.layer_prev.rect.pose = pose16(50, 43);
-    L.layer_next.rect.pose = pose16(80, 43);
+    L.layer_prev.rect.pose = pose16_palette(50, 10);
+    L.layer_next.rect.pose = pose16_palette(80, 10);
     char buf[8];
     sprintf(buf, "%d", canvas.current_layer);
     vec2 size = r_ro_text_set_text(&L.layer_num, buf);
-    L.layer_num.pose = pose_wh(65-size.x/2, 43-size.y/2+1, 1, 1);
+    L.layer_num.pose = pose_wh_palette(65-size.x/2, 12-size.y/2+1, 1, 1);
+    L.layer_title.pose = pose_wh_palette(50, 25, 1, 1);
+    
+    // tiles:
+    L.tiles_prev.rect.pose = pose16_palette(50, 50);
+    L.tiles_next.rect.pose = pose16_palette(80, 50);
+    sprintf(buf, "%d", canvas.current_layer);
+    size = r_ro_text_set_text(&L.tiles_num, buf);
+    L.tiles_num.pose = pose_wh_palette(65-size.x/2, 52-size.y/2+1, 1, 1);
+    L.tiles_title.pose = pose_wh_palette(50, 65, 1, 1);
     
     // shape longpress:
     if (button_is_pressed(L.shape_minus)) {
@@ -250,7 +291,13 @@ void toolbar_render() {
     	r_ro_single_render(&L.layer_prev);
     	r_ro_single_render(&L.layer_next);
     	r_ro_text_render(&L.layer_num);
+    	r_ro_text_render(&L.layer_title);
     }
+    
+    r_ro_single_render(&L.tiles_prev);
+    r_ro_single_render(&L.tiles_next);
+    r_ro_text_render(&L.tiles_num);
+    r_ro_text_render(&L.tiles_title);
 }
 
 // return true if the pointer was used (indicate event done)
