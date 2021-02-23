@@ -3,12 +3,34 @@
 
 #include "dmatn.h"
 #include "../types/double.h"
+#include "../vec/dvecn.h"
 
 
 /** dst = r==c ? 1 : 0 (identity)  */
 static dmat2 dmat2_eye() {
     dmat2 res;
     dmatN_eye(res.v, 2);
+    return res;
+}
+
+/** dst = (dmat2) v */
+static dmat2 dmat2_cast_from_float(const float *v) {
+    dmat2 res;
+    dvecN_cast_into(res.v, v, 2*2);
+    return res;
+}
+
+/** dst = (dmat2) v */
+static dmat2 dmat2_cast_from_int(const int *v) {
+    dmat2 res;
+    dvecN_cast_into(res.v, v, 2*2);
+    return res;
+}
+
+/** dst = (dmat2) v */
+static dmat2 dmat2_cast_from_unsigned(const unsigned *v) {
+    dmat2 res;
+    dvecN_cast_into(res.v, v, 2*2);
     return res;
 }
 

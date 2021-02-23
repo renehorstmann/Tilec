@@ -42,9 +42,8 @@ static mat4 setup_palette_color_pose(int r, int c) {
         u_pose_set_xy(&pose, camera_left() + TILES_SIZE / 2 + c * TILES_SIZE,
                       camera_bottom() + palette_get_hud_size() - TILES_SIZE / 2 - r * TILES_SIZE);
     } else {
-        u_pose_set_xy(&pose, camera_right() - palette_get_hud_size() + TILES_SIZE / 2 + r * TILES_SIZE,
-                      camera_bottom() + TILES_SIZE / 2 + c * TILES_SIZE);
-        u_pose_set_angle(&pose, M_PI_2);
+        u_pose_set_xy(&pose, camera_right() - palette_get_hud_size() + TILES_SIZE / 2 + c * TILES_SIZE,
+                      camera_bottom() + TILES_SIZE*TILES_ROWS - TILES_SIZE / 2 - r * TILES_SIZE);
     }
     return pose;
 }
@@ -93,8 +92,11 @@ void palette_update(float dtime) {
 
         L.palette_ro.rects[i].pose = setup_palette_color_pose(r, c);;
     }
-    
-    L.palette_clear_ro.rect.pose = setup_palette_color_pose(0, TILES_COLS+1);
+
+    if(camera_is_portrait_mode())
+        L.palette_clear_ro.rect.pose = setup_palette_color_pose(0, TILES_COLS+1);
+    else
+        L.palette_clear_ro.rect.pose = setup_palette_color_pose(-2, 0);
 
     float uw, uh;
     if(camera_is_portrait_mode()) {
