@@ -40,10 +40,10 @@ static mat4 setup_palette_color_pose(int r, int c) {
     u_pose_set_size(&pose, TILES_SIZE, TILES_SIZE);
     if (camera_is_portrait_mode()) {
         u_pose_set_xy(&pose, camera_left() + TILES_SIZE / 2 + c * TILES_SIZE,
-                      camera_bottom() + palette_get_hud_size() - TILES_SIZE / 2 - r * TILES_SIZE);
+                      floorf(camera_bottom() + palette_get_hud_size() - TILES_SIZE / 2 - r * TILES_SIZE));
     } else {
-        u_pose_set_xy(&pose, camera_right() - palette_get_hud_size() + TILES_SIZE / 2 + c * TILES_SIZE,
-                      camera_bottom() + TILES_SIZE*TILES_ROWS - TILES_SIZE / 2 - r * TILES_SIZE);
+        u_pose_set_xy(&pose, floorf(camera_right() - palette_get_hud_size() + TILES_SIZE / 2 + c * TILES_SIZE),
+                      floorf(camera_bottom() + TILES_SIZE*TILES_ROWS - TILES_SIZE / 2 - r * TILES_SIZE));
     }
     return pose;
 }
