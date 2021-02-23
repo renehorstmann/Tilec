@@ -4,6 +4,7 @@
 #include "r/r.h"
 #include "u/u.h"
 
+#include "tiles.h"
 #include "camera.h"
 #include "canvas_camera.h"
 #include "background.h"
@@ -74,6 +75,7 @@ int main(int argc, char **argv) {
     r_render_init(e_window.window);
 
     // init systems
+    tiles_init();
     camera_init();
     canvas_camera_init();
     background_init(color_from_hex(BG_COLOR_A), color_from_hex(BG_COLOR_B));

@@ -21,6 +21,8 @@ float palette_get_hud_size();
 
 int palette_get_color();
 
+int palette_get_tile_id();
+
 void palette_set_color(int index);
 
 void palette_change_tiles(bool next);

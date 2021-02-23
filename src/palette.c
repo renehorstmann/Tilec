@@ -1,19 +1,17 @@
-#include "mathc/sca/int.h"
 #include <stdbool.h>
 #include <assert.h>
+#include "mathc/sca/int.h"
+#include "utilc/alloc.h"
 #include "e/input.h"
 #include "r/r.h"
 #include "u/pose.h"
-#include "utilc/alloc.h"
+
+#include "tiles.h"
 #include "camera.h"
 #include "brush.h"
 #include "palette.h"
 
-#define TILE_COLS 8
-#define TILE_ROWS 8
-#define TILE_SIZE 16.0f
-
-_Static_assert(PALETTE_MAX == TILE_COLS * TILE_ROWS + 1, "wrong palette size");
+_Static_assert(PALETTE_MAX == TILES_COLS * TILES_ROWS + 1, "wrong palette size");
 
 static struct {
     Color_s palette[PALETTE_MAX];
@@ -37,34 +35,23 @@ static bool pos_in_palette(vec2 pos) {
 
 static mat4 setup_palette_color_pose(int r, int c) {
     mat4 pose = mat4_eye();
-    u_pose_set_size(&pose, TILE_SIZE, TILE_SIZE);
+    u_pose_set_size(&pose, TILES_SIZE, TILES_SIZE);
     if (camera_is_portrait_mode()) {
-        u_pose_set_xy(&pose, camera_left() + TILE_SIZE / 2 + c * TILE_SIZE,
-                      camera_bottom() + palette_get_hud_size() - TILE_SIZE / 2 - r * TILE_SIZE);
+        u_pose_set_xy(&pose, camera_left() + TILES_SIZE / 2 + c * TILES_SIZE,
+                      camera_bottom() + palette_get_hud_size() - TILES_SIZE / 2 - r * TILES_SIZE);
     } else {
-        u_pose_set_xy(&pose, camera_right() - TILE_SIZE / 2 - r * TILE_SIZE,
-                      camera_bottom() + TILE_SIZE / 2 + c * TILE_SIZE);
+        u_pose_set_xy(&pose, camera_right() - TILES_SIZE / 2 - r * TILES_SIZE,
+                      camera_bottom() + TILES_SIZE / 2 + c * TILES_SIZE);
         u_pose_set_angle(&pose, M_PI_2);
     }
     return pose;
 }
 
-static bool load_tiles() {
-	char file[128];
-	sprintf(file, "tiles/tile_%02i.png", L.tile_id);
-	SDL_Log("palette load tiles: %s", file);
-	GLuint tex = r_texture_init_file(file, NULL);
-	if(!tex)
-	    return false;
-	r_ro_batch_set_texture(&L.palette_ro, tex);
-	for(int i=0; i<PALETTE_MAX;i++) {
-		L.palette[i].b = L.tile_id;
-	}
-	return true;
-}
 
 void palette_init() {
-    r_ro_batch_init(&L.palette_ro, PALETTE_MAX, camera.gl, 0);
+    L.tile_id = 1;
+    r_ro_batch_init(&L.palette_ro, PALETTE_MAX, camera.gl, tiles.textures[L.tile_id-1]);
+    L.palette_ro.owns_tex = false; // tiles.h owns
     
     Color_s buf[4];
     buf[0] = buf[3] = color_from_hex("#99aa99");
@@ -73,20 +60,18 @@ void palette_init() {
     r_ro_single_init(&L.background_ro, camera.gl, r_texture_init(2, 2, buf));
     
     r_ro_single_init(&L.select_ro, camera.gl, r_texture_init_file("res/palette_select.png", NULL));
-    L.tile_id = 1;
     L.palette[PALETTE_MAX-2] = (Color_s) {0, 0, 0, 0};
     for(int i=0; i<PALETTE_MAX-1; i++) {
     	L.palette[i] = (Color_s) {0, 0, L.tile_id, i};
     }
     
-    load_tiles();
     
     // setup uvs
-    float w = 1.0/TILE_COLS;
-    float h = 1.0/TILE_ROWS;
+    float w = 1.0/TILES_COLS;
+    float h = 1.0/TILES_ROWS;
     int i=0;
-    for(int r=0; r<TILE_ROWS; r++) {
-    	for(int c=0; c<TILE_COLS; c++) {
+    for(int r=0; r<TILES_ROWS; r++) {
+    	for(int c=0; c<TILES_COLS; c++) {
     	    L.palette_ro.rects[i].uv = u_pose_new(c * w, r * h, w, h);
     	    i++;
         }
@@ -97,7 +82,7 @@ void palette_init() {
 
 
 void palette_update(float dtime) {
-    int cols = TILE_COLS;
+    int cols = TILES_COLS;
     int last_row = (PALETTE_MAX - 1) / cols;
     for (int i = 0; i < PALETTE_MAX; i++) {
         int r = i / cols;
@@ -162,11 +147,15 @@ bool palette_pointer_event(ePointer_s pointer) {
 }
 
 float palette_get_hud_size() {
-	return TILE_ROWS * TILE_SIZE;
+	return TILES_ROWS * TILES_SIZE;
 }
 
 int palette_get_color() {
     return L.last_selected;
+}
+
+int palette_get_tile_id() {
+    return L.tile_id;	
 }
 
 void palette_set_color(int index) {
@@ -176,13 +165,17 @@ void palette_set_color(int index) {
 }
 
 void palette_change_tiles(bool next) {
-    if(next)
-        L.tile_id++;
-    else
-        L.tile_id = isca_min(L.tile_id-1, 1);
+    L.tile_id += next? 1 : -1;
+    if(L.tile_id<=0)
+        L.tile_id = tiles.size;
+    if(L.tile_id>tiles.size)
+        L.tile_id = 1;
     
-    if(!load_tiles()) {
-    	L.tile_id = 1;
-    	load_tiles();
+    r_ro_batch_set_texture(&L.palette_ro, tiles.textures[L.tile_id-1]);
+    
+    for(int i=0; i<PALETTE_MAX-1; i++) {
+    	L.palette[i] = (Color_s) {0, 0, L.tile_id, i};
     }
+    
+    // todo: set selection and color to 0
 }

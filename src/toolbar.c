@@ -1,9 +1,12 @@
 #include <assert.h>
+
 #include "mathc/float.h"
 #include "r/texture.h"
 #include "r/ro_text.h"
-#include "button.h"
 #include "u/pose.h"
+
+#include "button.h"
+#include "tiles.h"
 #include "camera.h"
 #include "brush.h"
 #include "brush_shape.h"
@@ -11,6 +14,7 @@
 #include "canvas_camera_control.h"
 #include "animation.h"
 #include "selection.h"
+#include "palette.h"
 #include "savestate.h"
 #include "io.h"
 #include "toolbar.h"
@@ -86,9 +90,20 @@ static bool pos_in_toolbar(vec2 pos) {
     float size = toolbar.show_selection_copy_cut 
             || toolbar.show_selection_ok ?
             53 : 34;
-    if (camera_is_portrait_mode())
-        return pos.y >= camera_top() - size || pos.y <= camera_bottom() + 60;
-    return pos.x <= camera_left() + size || pos.x >= camera_right() - 60;
+    if (camera_is_portrait_mode()) {
+        if(pos.y >= camera_top() - size)
+            return true;
+        if(pos.y <= camera_bottom() + 60
+            && pos.x >= 40)
+            return true;
+    } else {
+        if(pos.x <= camera_left() + size)
+            return true;
+        if(pos.x >= camera_right() - 60
+            && pos.y >= 40)
+            return true;
+    }
+    return false;
 }
 
 static void unpress(rRoSingle **btns, int n, int ignore) {
@@ -238,7 +253,7 @@ void toolbar_update(float dtime) {
     // tiles:
     L.tiles_prev.rect.pose = pose16_palette(50, 50);
     L.tiles_next.rect.pose = pose16_palette(80, 50);
-    sprintf(buf, "%d", canvas.current_layer);
+    sprintf(buf, "%d", palette_get_tile_id());
     size = r_ro_text_set_text(&L.tiles_num, buf);
     L.tiles_num.pose = pose_wh_palette(65-size.x/2, 52-size.y/2+1, 1, 1);
     L.tiles_title.pose = pose_wh_palette(50, 65, 1, 1);
@@ -294,10 +309,12 @@ void toolbar_render() {
     	r_ro_text_render(&L.layer_title);
     }
     
-    r_ro_single_render(&L.tiles_prev);
-    r_ro_single_render(&L.tiles_next);
-    r_ro_text_render(&L.tiles_num);
-    r_ro_text_render(&L.tiles_title);
+    if(tiles.size>1) {
+        r_ro_single_render(&L.tiles_prev);
+        r_ro_single_render(&L.tiles_next);
+        r_ro_text_render(&L.tiles_num);
+        r_ro_text_render(&L.tiles_title);
+    }
 }
 
 // return true if the pointer was used (indicate event done)
@@ -468,6 +485,15 @@ bool toolbar_pointer_event(ePointer_s pointer) {
     	}
     	if(button_clicked(&L.layer_next, pointer)) {
     		canvas.current_layer = sca_min(canvas_image()->layers-1, canvas.current_layer+1);
+    	}
+    }
+    
+    if(tiles.size>1) {
+    	if(button_clicked(&L.tiles_prev, pointer)) {
+    		palette_change_tiles(false);
+    	}
+    	if(button_clicked(&L.tiles_next, pointer)) {
+    		palette_change_tiles(true);
     	}
     }
 
