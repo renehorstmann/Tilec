@@ -3,11 +3,16 @@ An opensource tile map editor in C, using SDL2 and OpenGL, also running on Andro
 Based on [some](https://github.com/renehorstmann/some) framework.
 Forked from [Pixelc](https://github.com/renehorstmann/Pixelc)
 
+## Status:
+Ready to draw maps.
+Saves after each tip on the screen to tilemap.png.
+Loads tilemap.png at start, if available.
+Put tile sheets into tiles/* to load them.
+The tile sheets names must be tile_xx.png, starting with tile_01.png.
+An import button can load import.png as selection, if available.
+Palette, canvas size, animation size can be configured in code (main.c).
 
 ## Todo
-- palette shows tile sheets
-- palette change buttons or gesture
-- canvas draws tiles instead of the map
 - animation button removes layer alpha and just animates the canvas
 
 ## Compiling on Windows

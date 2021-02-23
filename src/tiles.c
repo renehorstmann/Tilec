@@ -21,5 +21,7 @@ void tiles_init() {
 	    tile_id++;
 	    tiles.size++;
     }
-    SDL_Log(" tiles loaded: %i", tiles.size);
+    SDL_Log("tiles loaded: %i", tiles.size);
+    if(tiles.size == 0)
+        SDL_Log("WARNING: 0 tiles loaded! Put some into tiles/tile_xx.png, starting with xx=01");
 }
