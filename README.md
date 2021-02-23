@@ -12,6 +12,14 @@ The tile sheets names must be tile_xx.png, starting with tile_01.png.
 An import button can load import.png as selection, if available.
 Palette, canvas size, animation size can be configured in code (main.c).
 
+## Tilemaps
+The tile maps are saved as .png image files.
+In these, each tile is represented as a color code.
+an empty tile has a color code of `(Color_s) {0, 0, 0, 0}` (rgba).
+The tile i (row_major order) of tile_xx.png has the color code: `(Color_s) {0, 0, xx, i}`.
+In [tiles.c](src/tiles.c), the tile sheets are loaded from tiles/tile_xx.png, starting with tile_01.png.
+If a tile sheet is not available, tiles.c stops the loading. So there must not be a gap.
+
 ## Todo
 - animation button removes layer alpha and just animates the canvas
 
