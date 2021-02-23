@@ -201,8 +201,9 @@ void canvas_update(float dtime) {
     
     float x = 0, y = 0;
     if(canvas_camera_is_portrait_mode()) {
-        y = 30;
-    }
+        y = 45;
+    } else
+        x = -45;
     
     u_pose_set(&L.pose, x, y, w, h, 0);
     
