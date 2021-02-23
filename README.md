@@ -12,6 +12,8 @@ The tile sheets names must be tile_xx.png, starting with tile_01.png.
 An import button can load import.png as selection, if available.
 Palette, canvas size, animation size can be configured in code (main.c).
 
+![example_image](example.jpg)
+
 ## Tilemaps
 The tile maps are saved as .png image files.
 In these, each tile is represented as a color code.
