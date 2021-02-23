@@ -94,14 +94,14 @@ static bool pos_in_toolbar(vec2 pos) {
     if (camera_is_portrait_mode()) {
         if(pos.y >= camera_top() - size)
             return true;
-        if(pos.y <= camera_bottom() + 60
+        if(pos.y <= camera_bottom() + 50
             && pos.x >= 40)
             return true;
     } else {
         if(pos.x <= camera_left() + size)
             return true;
-        if(pos.x >= camera_right() - 60
-            && pos.y >= 40)
+        if(pos.x >= camera_right() - 100
+            && pos.y >= 60)
             return true;
     }
     return false;
@@ -266,10 +266,10 @@ void toolbar_update(float dtime) {
         u_pose_set_xy(&L.tiles_num.pose, floorf(65-size.x/2), floorf(camera_bottom()+40+size.y/2));
         u_pose_set_xy(&L.tiles_title.pose, 50, camera_bottom()+55);
     } else {
-        L.tiles_prev.rect.pose = u_pose_new(camera_right()-70, 70, 16, 16);
-        L.tiles_next.rect.pose = u_pose_new(camera_right()-40, 70, 16, 16);
-        u_pose_set_xy(&L.tiles_num.pose, floorf(camera_right()-55-size.x/2), floorf(70+size.y/2));
-        u_pose_set_xy(&L.tiles_title.pose, camera_right()-70, 85);
+        L.tiles_prev.rect.pose = u_pose_new(camera_right()-90, 70, 16, 16);
+        L.tiles_next.rect.pose = u_pose_new(camera_right()-60, 70, 16, 16);
+        u_pose_set_xy(&L.tiles_num.pose, floorf(camera_right()-75-size.x/2), floorf(70+size.y/2));
+        u_pose_set_xy(&L.tiles_title.pose, camera_right()-90, 85);
     }
 
     
