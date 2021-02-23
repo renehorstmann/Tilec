@@ -11,11 +11,13 @@
 #include "brush.h"
 #include "palette.h"
 
-_Static_assert(PALETTE_MAX == TILES_COLS * TILES_ROWS + 1, "wrong palette size");
+#define PALETTE_SIZE (TILES_COLS * TILES_ROWS)
+
 
 static struct {
-    Color_s palette[PALETTE_MAX];
+    Color_s palette[PALETTE_SIZE];
     rRoBatch palette_ro;
+    rRoSingle palette_clear_ro;
     rRoSingle select_ro;
     rRoSingle background_ro;
     int last_selected;
@@ -50,8 +52,10 @@ static mat4 setup_palette_color_pose(int r, int c) {
 
 void palette_init() {
     L.tile_id = 1;
-    r_ro_batch_init(&L.palette_ro, PALETTE_MAX, camera.gl, tiles.textures[L.tile_id-1]);
+    r_ro_batch_init(&L.palette_ro, PALETTE_SIZE, camera.gl, tiles.textures[L.tile_id-1]);
     L.palette_ro.owns_tex = false; // tiles.h owns
+    
+    r_ro_single_init(&L.palette_clear_ro, camera.gl, r_texture_init_file("res/toolbar_color_bg.png", NULL));
     
     Color_s buf[4];
     buf[0] = buf[3] = color_from_hex("#99aa99");
@@ -60,8 +64,7 @@ void palette_init() {
     r_ro_single_init(&L.background_ro, camera.gl, r_texture_init(2, 2, buf));
     
     r_ro_single_init(&L.select_ro, camera.gl, r_texture_init_file("res/palette_select.png", NULL));
-    L.palette[PALETTE_MAX-2] = (Color_s) {0, 0, 0, 0};
-    for(int i=0; i<PALETTE_MAX-1; i++) {
+    for(int i=0; i<PALETTE_SIZE; i++) {
     	L.palette[i] = (Color_s) {0, 0, L.tile_id, i};
     }
     
@@ -76,26 +79,22 @@ void palette_init() {
     	    i++;
         }
     }
-    L.palette_ro.rects[PALETTE_MAX-2].color = (vec4) {{0}};
     r_ro_batch_update(&L.palette_ro);
+    
+    palette_set_color(-1);
+    brush.secondary_color = brush.current_color;
 }
 
 
 void palette_update(float dtime) {
-    int cols = TILES_COLS;
-    int last_row = (PALETTE_MAX - 1) / cols;
-    for (int i = 0; i < PALETTE_MAX; i++) {
-        int r = i / cols;
-        int c = i % cols;
+    for (int i = 0; i < PALETTE_SIZE; i++) {
+        int r = i / TILES_COLS;
+        int c = i % TILES_COLS;
 
-        // pose
-        mat4 pose = mat4_eye();
-        if (r <= last_row)
-            pose = setup_palette_color_pose(r, c);
-        else
-            u_pose_set(&pose, FLT_MAX, FLT_MAX, 0, 0, 0);
-        L.palette_ro.rects[i].pose = pose;
+        L.palette_ro.rects[i].pose = setup_palette_color_pose(r, c);;
     }
+    
+    L.palette_clear_ro.rect.pose = setup_palette_color_pose(0, TILES_COLS+1);
 
     float uw, uh;
     if(camera_is_portrait_mode()) {
@@ -117,7 +116,10 @@ void palette_update(float dtime) {
     
     u_pose_set_xy(&L.background_ro.rect.uv, ux, uy);
 
-    L.select_ro.rect.pose = L.palette_ro.rects[L.last_selected].pose;
+    if(L.last_selected == -1)
+        L.select_ro.rect.pose = L.palette_clear_ro.rect.pose;
+    else 
+        L.select_ro.rect.pose = L.palette_ro.rects[L.last_selected].pose;
 
     r_ro_batch_update(&L.palette_ro);
 }
@@ -125,6 +127,7 @@ void palette_update(float dtime) {
 void palette_render() {
     r_ro_single_render(&L.background_ro);
     r_ro_batch_render(&L.palette_ro);
+    r_ro_single_render(&L.palette_clear_ro);
     r_ro_single_render(&L.select_ro);
 }
 
@@ -136,11 +139,16 @@ bool palette_pointer_event(ePointer_s pointer) {
     if (pointer.action != E_POINTER_DOWN)
         return true;
 
-    for (int i = 0; i < PALETTE_MAX; i++) {
+    for (int i = 0; i < PALETTE_SIZE; i++) {
         if (u_pose_aa_contains(L.palette_ro.rects[i].pose, pointer.pos.xy)) {
             palette_set_color(i);
             return true;
         }
+    }
+    
+    if(u_pose_aa_contains(L.palette_clear_ro.rect.pose, pointer.pos.xy)) {
+    	palette_set_color(-1);
+    	return true;
     }
 
     return true;
@@ -159,8 +167,10 @@ int palette_get_tile_id() {
 }
 
 void palette_set_color(int index) {
-    brush.current_color = L.palette[index];
-    L.select_ro.rect.pose = L.palette_ro.rects[index].pose;
+    if(index == -1)
+        brush.current_color = (Color_s) {0};
+    else
+        brush.current_color = L.palette[index];
     L.last_selected = index;
 }
 
@@ -173,9 +183,9 @@ void palette_change_tiles(bool next) {
     
     r_ro_batch_set_texture(&L.palette_ro, tiles.textures[L.tile_id-1]);
     
-    for(int i=0; i<PALETTE_MAX-1; i++) {
+    for(int i=1; i<PALETTE_SIZE; i++) {
     	L.palette[i] = (Color_s) {0, 0, L.tile_id, i};
     }
     
-    // todo: set selection and color to 0
+    palette_set_color(-1);
 }

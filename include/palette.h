@@ -5,8 +5,6 @@
 #include "e/input.h"
 #include "color.h"
 
- // 64 + empty
-#define PALETTE_MAX 65
 
 void palette_init();
 

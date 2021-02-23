@@ -54,8 +54,9 @@ static struct {
     rRoSingle shape;
     float shape_minus_time, shape_plus_time;
 
-    rRoSingle color_bg, color_drop;
-
+    rRoSingle color_drop;
+    GLuint color_clear_tex;
+    
     rRoSingle selection_copy;
     rRoSingle selection_cut;
     rRoSingle selection_rotate_left;
@@ -176,9 +177,11 @@ void toolbar_init() {
     r_ro_single_init(&L.shape, camera.gl, brush_shape_create_kernel_texture(COLOR_TRANSPARENT, COLOR_WHITE));
 
     // secondar color:
-    r_ro_single_init(&L.color_bg, camera.gl, r_texture_init_file("res/toolbar_color_bg.png", NULL));
+    L.color_clear_tex = r_texture_init_file("res/toolbar_color_bg.png", NULL);
 
-    r_ro_single_init(&L.color_drop, camera.gl, r_texture_init_file("res/color_drop.png", NULL));
+    r_ro_single_init(&L.color_drop, camera.gl, tiles.textures[0]);
+    L.color_drop.owns_tex = false; // tiles.h owns
+    
 
   
     // selection buttons:
@@ -229,8 +232,19 @@ void toolbar_update(float dtime) {
     L.shape.rect.uv = brush_shape_kernel_texture_uv(brush.shape);
 
     // secondary color:    
-    L.color_bg.rect.pose = L.color_drop.rect.pose = pose16(64, 9);
-    L.color_drop.rect.color = color_to_vec4(brush.secondary_color);
+    L.color_drop.rect.pose = pose16(64, 9);
+    int tile_id = brush.secondary_color.b;
+    if(tile_id==0) {
+        r_ro_single_set_texture(&L.color_drop, L.color_clear_tex);
+        L.color_drop.rect.uv = mat4_eye();
+    } else {
+    	r_ro_single_set_texture(&L.color_drop, tiles.textures[tile_id-1]);
+    	float w = 1.0/TILES_COLS;
+    	float h = 1.0/TILES_ROWS;
+    	int c = brush.secondary_color.a % TILES_COLS;
+    	int r = brush.secondary_color.a / TILES_COLS;
+    	L.color_drop.rect.uv = u_pose_new(c * w, r * h, w, h);
+    }
 
     // selection buttons:
     L.selection_copy.rect.pose = pose16(-8, 43);
@@ -286,7 +300,6 @@ void toolbar_render() {
     r_ro_single_render(&L.shape);
 
     // secondary color:
-    r_ro_single_render(&L.color_bg);
     r_ro_single_render(&L.color_drop);
 
     // selection buttons:
