@@ -23,7 +23,7 @@
 //
 
 // canvas size
-#define COLS 16
+#define COLS 32
 #define ROWS 16
 #define LAYERS 2
 

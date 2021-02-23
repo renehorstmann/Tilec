@@ -13,6 +13,7 @@ static struct {
     bool change;
     bool selection_active;
     bool selection_set;
+    bool selection_moving;
     ivec2 selection_pos;
 } L;
 
@@ -50,9 +51,18 @@ static void setup_selection(ePointer_s pointer) {
 static void move_selection(ePointer_s pointer) {
 	Image *img = canvas_image();
     int layer = canvas.current_layer;
-    
-	if(pointer.action == E_POINTER_UP)
-	    return;
+
+    if(pointer.action == E_POINTER_UP) {
+        L.selection_moving = false;
+        return;
+    }
+    if(pointer.action == E_POINTER_DOWN) {
+        L.selection_moving = true;
+    }
+
+    if(!L.selection_moving) {
+        return;
+    }
 	    
 	ivec2 cr = canvas_get_cr(pointer.pos);
 	    
