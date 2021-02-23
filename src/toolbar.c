@@ -130,20 +130,6 @@ static mat4 pose16(float col, float row) {
     return pose_wh(col, row, 16, 16);
 }
 
-static mat4 pose_wh_palette(float col, float row, float w, float h) {
-    mat4 pose = mat4_eye();
-    if (camera_is_portrait_mode()) {
-        u_pose_set(&pose, col, camera_bottom() + row, w, h, 0);
-    } else {
-        u_pose_set(&pose, camera_right() - row, col, w, h, 0);
-    }
-    return pose;
-}
-
-static mat4 pose16_palette(float col, float row) {
-    return pose_wh_palette(col, row, 16, 16);
-}
-
 
 void toolbar_init() {
     L.undo = tool_append(-80, 26, "res/button_undo.png");
@@ -256,21 +242,36 @@ void toolbar_update(float dtime) {
     L.selection_ok.rect.pose = pose16(20, 43);
     
     // layer:
-    L.layer_prev.rect.pose = pose16_palette(50, 10);
-    L.layer_next.rect.pose = pose16_palette(80, 10);
     char buf[8];
     sprintf(buf, "%d", canvas.current_layer);
     vec2 size = r_ro_text_set_text(&L.layer_num, buf);
-    L.layer_num.pose = pose_wh_palette(65-size.x/2, 12-size.y/2+1, 1, 1);
-    L.layer_title.pose = pose_wh_palette(50, 25, 1, 1);
-    
-    // tiles:
-    L.tiles_prev.rect.pose = pose16_palette(50, 50);
-    L.tiles_next.rect.pose = pose16_palette(80, 50);
+    if(camera_is_portrait_mode()) {
+        L.layer_prev.rect.pose = u_pose_new(50, camera_bottom()+10, 16, 16);
+        L.layer_next.rect.pose = u_pose_new(80, camera_bottom()+10, 16, 16);
+        u_pose_set_xy(&L.layer_num.pose, floorf(65-size.x/2), floorf(camera_bottom()+10+size.y/2));
+        u_pose_set_xy(&L.layer_title.pose, 50, camera_bottom()+25);
+    } else {
+        L.layer_prev.rect.pose = u_pose_new(camera_right()-40, 70, 16, 16);
+        L.layer_next.rect.pose = u_pose_new(camera_right()-10, 70, 16, 16);
+        u_pose_set_xy(&L.layer_num.pose, floorf(camera_right()-25-size.x/2), floorf(70+size.y/2));
+        u_pose_set_xy(&L.layer_title.pose, camera_right()-40, 85);
+    }
+
+    // tiles
     sprintf(buf, "%d", palette_get_tile_id());
     size = r_ro_text_set_text(&L.tiles_num, buf);
-    L.tiles_num.pose = pose_wh_palette(65-size.x/2, 52-size.y/2+1, 1, 1);
-    L.tiles_title.pose = pose_wh_palette(50, 65, 1, 1);
+    if(camera_is_portrait_mode()) {
+        L.layer_prev.rect.pose = u_pose_new(50, camera_bottom()+40, 16, 16);
+        L.layer_next.rect.pose = u_pose_new(80, camera_bottom()+40, 16, 16);
+        u_pose_set_xy(&L.layer_num.pose, floorf(65-size.x/2), floorf(camera_bottom()+40+size.y/2));
+        u_pose_set_xy(&L.layer_title.pose, 50, camera_bottom()+55);
+    } else {
+        L.layer_prev.rect.pose = u_pose_new(camera_right()-70, 70, 16, 16);
+        L.layer_next.rect.pose = u_pose_new(camera_right()-40, 70, 16, 16);
+        u_pose_set_xy(&L.layer_num.pose, floorf(camera_right()-55-size.x/2), floorf(70+size.y/2));
+        u_pose_set_xy(&L.layer_title.pose, camera_right()-70, 85);
+    }
+
     
     // shape longpress:
     if (button_is_pressed(L.shape_minus)) {
