@@ -261,15 +261,15 @@ void toolbar_update(float dtime) {
     sprintf(buf, "%d", palette_get_tile_id());
     size = r_ro_text_set_text(&L.tiles_num, buf);
     if(camera_is_portrait_mode()) {
-        L.layer_prev.rect.pose = u_pose_new(50, camera_bottom()+40, 16, 16);
-        L.layer_next.rect.pose = u_pose_new(80, camera_bottom()+40, 16, 16);
-        u_pose_set_xy(&L.layer_num.pose, floorf(65-size.x/2), floorf(camera_bottom()+40+size.y/2));
-        u_pose_set_xy(&L.layer_title.pose, 50, camera_bottom()+55);
+        L.tiles_prev.rect.pose = u_pose_new(50, camera_bottom()+40, 16, 16);
+        L.tiles_next.rect.pose = u_pose_new(80, camera_bottom()+40, 16, 16);
+        u_pose_set_xy(&L.tiles_num.pose, floorf(65-size.x/2), floorf(camera_bottom()+40+size.y/2));
+        u_pose_set_xy(&L.tiles_title.pose, 50, camera_bottom()+55);
     } else {
-        L.layer_prev.rect.pose = u_pose_new(camera_right()-70, 70, 16, 16);
-        L.layer_next.rect.pose = u_pose_new(camera_right()-40, 70, 16, 16);
-        u_pose_set_xy(&L.layer_num.pose, floorf(camera_right()-55-size.x/2), floorf(70+size.y/2));
-        u_pose_set_xy(&L.layer_title.pose, camera_right()-70, 85);
+        L.tiles_prev.rect.pose = u_pose_new(camera_right()-70, 70, 16, 16);
+        L.tiles_next.rect.pose = u_pose_new(camera_right()-40, 70, 16, 16);
+        u_pose_set_xy(&L.tiles_num.pose, floorf(camera_right()-55-size.x/2), floorf(70+size.y/2));
+        u_pose_set_xy(&L.tiles_title.pose, camera_right()-70, 85);
     }
 
     

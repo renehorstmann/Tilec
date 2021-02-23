@@ -42,7 +42,7 @@ static mat4 setup_palette_color_pose(int r, int c) {
         u_pose_set_xy(&pose, camera_left() + TILES_SIZE / 2 + c * TILES_SIZE,
                       camera_bottom() + palette_get_hud_size() - TILES_SIZE / 2 - r * TILES_SIZE);
     } else {
-        u_pose_set_xy(&pose, camera_right() - TILES_SIZE / 2 - r * TILES_SIZE,
+        u_pose_set_xy(&pose, camera_right() - palette_get_hud_size() - TILES_SIZE / 2 + r * TILES_SIZE,
                       camera_bottom() + TILES_SIZE / 2 + c * TILES_SIZE);
         u_pose_set_angle(&pose, M_PI_2);
     }
