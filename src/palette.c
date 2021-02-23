@@ -102,19 +102,15 @@ void palette_update(float dtime) {
         uh = (palette_get_hud_size()+1) / 2;
         L.background_ro.rect.pose = u_pose_new_aa(
             camera_left(), ceilf(camera_bottom() +  palette_get_hud_size()), 
-            camera_width(), palette_get_hud_size()+1);
+            camera_width(), ceilf(palette_get_hud_size()+1));
     } else {
          uw = (palette_get_hud_size()+1) / 2;
          uh = camera_height() / 2;
          L.background_ro.rect.pose = u_pose_new_aa(
              floorf(camera_right() - palette_get_hud_size()), camera_top(), 
-             palette_get_hud_size()+1, camera_height());
+             ceilf(palette_get_hud_size()+1), camera_height());
     }
     u_pose_set_size(&L.background_ro.rect.uv, uw, uh);
-    float ux = -(camera_right() + camera_left()) / 4;
-    float uy = (camera_bottom() + camera_top()) / 4;
-    
-    u_pose_set_xy(&L.background_ro.rect.uv, ux, uy);
 
     if(L.last_selected == -1)
         L.select_ro.rect.pose = L.palette_clear_ro.rect.pose;
