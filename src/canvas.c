@@ -5,6 +5,7 @@
 #include "r/texture.h"
 #include "u/pose.h"
 #include "utilc/alloc.h"
+#include "utilc/assume.h"
 #include "mathc/mat/float.h"
 
 #include "tiles.h"
@@ -140,7 +141,7 @@ static void set_pixel_tile(int layer, int c, int r) {
         u_pose_set_xy(&L.tiles[layer][tile_id].rects[idx].uv, tile_x, tile_y);
         
         float alpha = (layer+1.0) / (canvas.current_layer + 1.0);
-        L.tiles[layer][tile_id].rects[idx].color.a = alpha;
+        L.tiles[layer][tile_id].rects[idx].color.a = alpha * canvas.alpha;
     }
     
     
@@ -152,6 +153,8 @@ static void load_state(const void *data, size_t size);
 
 
 void canvas_init(int cols, int rows, int layers, int grid_cols, int grid_rows) {
+    assume(layers<=MAX_LAYERS, "too many layers");
+    canvas.alpha = 1.0;
     
     L.save_id = savestate_register(save_state, load_state);
      
