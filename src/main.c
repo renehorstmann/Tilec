@@ -102,7 +102,6 @@ int main(int argc, char **argv) {
 
 static void main_loop(float delta_time) {
     // e updates
-    e_window_update();
     e_input_update();
     
 
