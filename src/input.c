@@ -1,8 +1,7 @@
-#include "mathc/mat/float.h"
 #include "e/input.h"
+#include "mathc/mat/float.h"
 #include "camera.h"
 #include "canvas_camera.h"
-
 #include "brush.h"
 #include "canvas_camera_control.h"
 #include "palette.h"

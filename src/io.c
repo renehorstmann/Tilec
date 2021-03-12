@@ -1,5 +1,5 @@
-#include "utilc/assume.h"
 #include "SDL_image.h"
+#include "utilc/assume.h"
 #include "canvas.h"
 #include "io.h"
 

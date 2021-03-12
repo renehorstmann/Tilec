@@ -1,10 +1,10 @@
 #include <stdbool.h>
 #include <assert.h>
-#include "mathc/sca/int.h"
-#include "utilc/alloc.h"
 #include "e/input.h"
 #include "r/r.h"
 #include "u/pose.h"
+#include "mathc/sca/int.h"
+#include "utilc/alloc.h"
 
 #include "tiles.h"
 #include "camera.h"
