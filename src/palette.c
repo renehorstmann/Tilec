@@ -43,7 +43,7 @@ static mat4 setup_palette_color_pose(int r, int c) {
                       floorf(camera_bottom() + palette_get_hud_size() - TILES_SIZE / 2 - r * TILES_SIZE));
     } else {
         u_pose_set_xy(&pose, floorf(camera_right() - palette_get_hud_size() + TILES_SIZE / 2 + c * TILES_SIZE),
-                      floorf(camera_bottom() + TILES_SIZE*TILES_ROWS - TILES_SIZE / 2 - r * TILES_SIZE));
+                      floorf(camera_bottom() + TILES_SIZE * TILES_ROWS - TILES_SIZE / 2 - r * TILES_SIZE));
     }
     return pose;
 }
@@ -51,35 +51,35 @@ static mat4 setup_palette_color_pose(int r, int c) {
 
 void palette_init() {
     L.tile_id = 1;
-    r_ro_batch_init(&L.palette_ro, PALETTE_SIZE, camera.gl, tiles.textures[L.tile_id-1]);
+    r_ro_batch_init(&L.palette_ro, PALETTE_SIZE, camera.gl, tiles.textures[L.tile_id - 1]);
     L.palette_ro.owns_tex = false; // tiles.h owns
-    
+
     r_ro_single_init(&L.palette_clear_ro, camera.gl, r_texture_init_file("res/toolbar_color_bg.png", NULL));
-    
+
     Color_s buf[4];
     buf[0] = buf[3] = color_from_hex("#99aa99");
     buf[1] = buf[2] = color_from_hex("#889988");
 
     r_ro_single_init(&L.background_ro, camera.gl, r_texture_init(2, 2, buf));
-    
+
     r_ro_single_init(&L.select_ro, camera.gl, r_texture_init_file("res/palette_select.png", NULL));
-    for(int i=0; i<PALETTE_SIZE; i++) {
-    	L.palette[i] = (Color_s) {0, 0, L.tile_id, i};
+    for (int i = 0; i < PALETTE_SIZE; i++) {
+        L.palette[i] = (Color_s) {0, 0, L.tile_id, i};
     }
-    
-    
+
+
     // setup uvs
-    float w = 1.0/TILES_COLS;
-    float h = 1.0/TILES_ROWS;
-    int i=0;
-    for(int r=0; r<TILES_ROWS; r++) {
-    	for(int c=0; c<TILES_COLS; c++) {
-    	    L.palette_ro.rects[i].uv = u_pose_new(c * w, r * h, w, h);
-    	    i++;
+    float w = 1.0 / TILES_COLS;
+    float h = 1.0 / TILES_ROWS;
+    int i = 0;
+    for (int r = 0; r < TILES_ROWS; r++) {
+        for (int c = 0; c < TILES_COLS; c++) {
+            L.palette_ro.rects[i].uv = u_pose_new(c * w, r * h, w, h);
+            i++;
         }
     }
     r_ro_batch_update(&L.palette_ro);
-    
+
     palette_set_color(-1);
     brush.secondary_color = brush.current_color;
 }
@@ -93,30 +93,30 @@ void palette_update(float dtime) {
         L.palette_ro.rects[i].pose = setup_palette_color_pose(r, c);;
     }
 
-    if(camera_is_portrait_mode())
-        L.palette_clear_ro.rect.pose = setup_palette_color_pose(0, TILES_COLS+1);
+    if (camera_is_portrait_mode())
+        L.palette_clear_ro.rect.pose = setup_palette_color_pose(0, TILES_COLS + 1);
     else
         L.palette_clear_ro.rect.pose = setup_palette_color_pose(-2, 0);
 
     float uw, uh;
-    if(camera_is_portrait_mode()) {
+    if (camera_is_portrait_mode()) {
         uw = camera_width() / 2;
-        uh = (palette_get_hud_size()+1) / 2;
+        uh = (palette_get_hud_size() + 1) / 2;
         L.background_ro.rect.pose = u_pose_new_aa(
-            camera_left(), ceilf(camera_bottom() +  palette_get_hud_size()), 
-            camera_width(), ceilf(palette_get_hud_size()+1));
+                camera_left(), ceilf(camera_bottom() + palette_get_hud_size()),
+                camera_width(), ceilf(palette_get_hud_size() + 1));
     } else {
-         uw = (palette_get_hud_size()+1) / 2;
-         uh = camera_height() / 2;
-         L.background_ro.rect.pose = u_pose_new_aa(
-             floorf(camera_right() - palette_get_hud_size()), camera_top(), 
-             ceilf(palette_get_hud_size()+1), camera_height());
+        uw = (palette_get_hud_size() + 1) / 2;
+        uh = camera_height() / 2;
+        L.background_ro.rect.pose = u_pose_new_aa(
+                floorf(camera_right() - palette_get_hud_size()), camera_top(),
+                ceilf(palette_get_hud_size() + 1), camera_height());
     }
     u_pose_set_size(&L.background_ro.rect.uv, uw, uh);
 
-    if(L.last_selected == -1)
+    if (L.last_selected == -1)
         L.select_ro.rect.pose = L.palette_clear_ro.rect.pose;
-    else 
+    else
         L.select_ro.rect.pose = L.palette_ro.rects[L.last_selected].pose;
 
     r_ro_batch_update(&L.palette_ro);
@@ -143,17 +143,17 @@ bool palette_pointer_event(ePointer_s pointer) {
             return true;
         }
     }
-    
-    if(u_pose_aa_contains(L.palette_clear_ro.rect.pose, pointer.pos.xy)) {
-    	palette_set_color(-1);
-    	return true;
+
+    if (u_pose_aa_contains(L.palette_clear_ro.rect.pose, pointer.pos.xy)) {
+        palette_set_color(-1);
+        return true;
     }
 
     return true;
 }
 
 float palette_get_hud_size() {
-	return TILES_ROWS * TILES_SIZE;
+    return TILES_ROWS * TILES_SIZE;
 }
 
 int palette_get_color() {
@@ -161,11 +161,11 @@ int palette_get_color() {
 }
 
 int palette_get_tile_id() {
-    return L.tile_id;	
+    return L.tile_id;
 }
 
 void palette_set_color(int index) {
-    if(index == -1)
+    if (index == -1)
         brush.current_color = (Color_s) {0};
     else
         brush.current_color = L.palette[index];
@@ -173,17 +173,17 @@ void palette_set_color(int index) {
 }
 
 void palette_change_tiles(bool next) {
-    L.tile_id += next? 1 : -1;
-    if(L.tile_id<=0)
+    L.tile_id += next ? 1 : -1;
+    if (L.tile_id <= 0)
         L.tile_id = tiles.size;
-    if(L.tile_id>tiles.size)
+    if (L.tile_id > tiles.size)
         L.tile_id = 1;
-    
-    r_ro_batch_set_texture(&L.palette_ro, tiles.textures[L.tile_id-1]);
-    
-    for(int i=1; i<PALETTE_SIZE; i++) {
-    	L.palette[i] = (Color_s) {0, 0, L.tile_id, i};
+
+    r_ro_batch_set_texture(&L.palette_ro, tiles.textures[L.tile_id - 1]);
+
+    for (int i = 1; i < PALETTE_SIZE; i++) {
+        L.palette[i] = (Color_s) {0, 0, L.tile_id, i};
     }
-    
+
     palette_set_color(-1);
 }

@@ -56,7 +56,7 @@ static void main_loop(float delta_time);
 
 int main(int argc, char **argv) {
     SDL_Log("Tilec");
-    
+
 #ifdef IMAGE_FILE
     io.default_image_file = IMAGE_FILE;
 #endif
@@ -93,7 +93,7 @@ int main(int argc, char **argv) {
     e_window_main_loop(main_loop);
 
     e_gui_kill();
-    
+
     return 0;
 }
 
@@ -101,7 +101,7 @@ int main(int argc, char **argv) {
 static void main_loop(float delta_time) {
     // e updates
     e_input_update();
-    
+
 
     // simulate
     camera_update();

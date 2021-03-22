@@ -10,10 +10,10 @@
 #define TILES_SIZE 16.0f
 
 struct TilesGlobals_s {
-	Image *imgs[MAX_TILES];
-	GLuint textures[MAX_TILES];
-	int ids[MAX_TILES];
-	int size;
+    Image *imgs[MAX_TILES];
+    GLuint textures[MAX_TILES];
+    int ids[MAX_TILES];
+    int size;
 };
 extern struct TilesGlobals_s tiles;
 
