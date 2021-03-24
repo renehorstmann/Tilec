@@ -181,7 +181,7 @@ void palette_change_tiles(bool next) {
 
     r_ro_batch_set_texture(&L.palette_ro, tiles.textures[L.tile_id - 1]);
 
-    for (int i = 1; i < PALETTE_SIZE; i++) {
+    for (int i = 0; i < PALETTE_SIZE; i++) {
         L.palette[i] = (Color_s) {0, 0, L.tile_id, i};
     }
 
