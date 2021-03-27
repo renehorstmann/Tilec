@@ -54,15 +54,15 @@ void palette_init() {
     r_ro_batch_init(&L.palette_ro, PALETTE_SIZE, camera.gl, tiles.textures[L.tile_id - 1]);
     L.palette_ro.owns_tex = false; // tiles.h owns
 
-    r_ro_single_init(&L.palette_clear_ro, camera.gl, r_texture_init_file("res/toolbar_color_bg.png", NULL));
+    r_ro_single_init(&L.palette_clear_ro, camera.gl, r_texture_new_file("res/toolbar_color_bg.png", NULL));
 
     Color_s buf[4];
     buf[0] = buf[3] = color_from_hex("#99aa99");
     buf[1] = buf[2] = color_from_hex("#889988");
 
-    r_ro_single_init(&L.background_ro, camera.gl, r_texture_init(2, 2, buf));
+    r_ro_single_init(&L.background_ro, camera.gl, r_texture_new(2, 2, buf));
 
-    r_ro_single_init(&L.select_ro, camera.gl, r_texture_init_file("res/palette_select.png", NULL));
+    r_ro_single_init(&L.select_ro, camera.gl, r_texture_new_file("res/palette_select.png", NULL));
     for (int i = 0; i < PALETTE_SIZE; i++) {
         L.palette[i] = (Color_s) {0, 0, L.tile_id, i};
     }

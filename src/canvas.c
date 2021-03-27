@@ -56,7 +56,7 @@ static void init_tile_ro(rRoBatch *ro, GLuint tex) {
 
 static void init_render_objects() {
     for (int layer = 0; layer < L.image->layers; layer++) {
-        GLuint tex = r_texture_init(L.image->cols, L.image->rows, image_layer(L.image, layer));
+        GLuint tex = r_texture_new(L.image->cols, L.image->rows, image_layer(L.image, layer));
 
         for (int i = 0; i < tiles.size; i++) {
             init_tile_ro(&L.tiles[layer][i], tiles.textures[i]);
@@ -178,12 +178,12 @@ void canvas_init(int cols, int rows, int layers, int grid_cols, int grid_rows) {
     init_render_objects();
 
     r_ro_single_init(&L.grid, canvas_camera.gl,
-                     r_texture_init_file("res/canvas_grid.png", NULL));
+                     r_texture_new_file("res/canvas_grid.png", NULL));
     u_pose_set_size(&L.grid.rect.uv, cols, rows);
 
 
     r_ro_batch_init(&L.selection_border, 2 * (rows + cols) * SELECTION_BORDER_FACTOR, canvas_camera.gl,
-                    r_texture_init_file("res/selection_border.png", NULL));
+                    r_texture_new_file("res/selection_border.png", NULL));
     for (int i = 0; i < L.selection_border.num; i++) {
         L.selection_border.rects[i].color = color_to_vec4(color_from_hex("#357985"));
     }
@@ -192,7 +192,7 @@ void canvas_init(int cols, int rows, int layers, int grid_cols, int grid_rows) {
     Color_s buf[4];
     buf[0] = buf[3] = color_from_hex("#999999");
     buf[1] = buf[2] = color_from_hex("#777777");
-    GLuint bg_tex = r_texture_init(2, 2, buf);
+    GLuint bg_tex = r_texture_new(2, 2, buf);
     r_ro_single_init(&L.bg, canvas_camera.gl, bg_tex);
     {
         float w = (float) cols / (2 * grid_cols);

@@ -48,7 +48,7 @@ void animation_init(int multi_cols, int multi_rows, int frames, float fps) {
     L.fps = fps;
 
     Image *img = canvas_image();
-    GLuint tex = r_texture_init(img->cols, img->rows, image_layer(img, canvas.current_layer));
+    GLuint tex = r_texture_new(img->cols, img->rows, image_layer(img, canvas.current_layer));
 
     r_ro_single_init(&L.ro, camera.gl, tex);
     u_pose_set_w(&L.ro.rect.uv, 1.0 / frames);

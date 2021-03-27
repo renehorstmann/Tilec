@@ -83,7 +83,7 @@ static rRoSingle *tool_append(float x, float y, const char *btn_file) {
     assert(L.tools_size < TOOL_MAX);
     Tool *self = &L.tools[L.tools_size++];
 
-    button_init(&self->btn, r_texture_init_file(btn_file, NULL));
+    button_init(&self->btn, r_texture_new_file(btn_file, NULL));
     self->x = x;
     self->y = y;
     return &self->btn;
@@ -165,7 +165,7 @@ void toolbar_init() {
     r_ro_single_init(&L.shape, camera.gl, brush_shape_create_kernel_texture(COLOR_TRANSPARENT, COLOR_WHITE));
 
     // secondar color:
-    L.color_clear_tex = r_texture_init_file("res/toolbar_color_bg.png", NULL);
+    L.color_clear_tex = r_texture_new_file("res/toolbar_color_bg.png", NULL);
 
     r_ro_single_init(&L.color_drop, camera.gl, tiles.textures[0]);
     L.color_drop.owns_tex = false; // tiles.h owns
@@ -173,24 +173,24 @@ void toolbar_init() {
 
 
     // selection buttons:
-    button_init(&L.selection_copy, r_texture_init_file("res/button_copy.png", NULL));
+    button_init(&L.selection_copy, r_texture_new_file("res/button_copy.png", NULL));
 
-    button_init(&L.selection_cut, r_texture_init_file("res/button_cut.png", NULL));
+    button_init(&L.selection_cut, r_texture_new_file("res/button_cut.png", NULL));
 
-    button_init(&L.selection_rotate_left, r_texture_init_file("res/button_rotate_left.png", NULL));
+    button_init(&L.selection_rotate_left, r_texture_new_file("res/button_rotate_left.png", NULL));
 
-    button_init(&L.selection_rotate_right, r_texture_init_file("res/button_rotate_right.png", NULL));
+    button_init(&L.selection_rotate_right, r_texture_new_file("res/button_rotate_right.png", NULL));
 
-    button_init(&L.selection_mirror_horizontal, r_texture_init_file("res/button_horizontal.png", NULL));
+    button_init(&L.selection_mirror_horizontal, r_texture_new_file("res/button_horizontal.png", NULL));
 
-    button_init(&L.selection_mirror_vertical, r_texture_init_file("res/button_vertical.png", NULL));
+    button_init(&L.selection_mirror_vertical, r_texture_new_file("res/button_vertical.png", NULL));
 
-    button_init(&L.selection_ok, r_texture_init_file("res/button_ok.png", NULL));
+    button_init(&L.selection_ok, r_texture_new_file("res/button_ok.png", NULL));
 
     // layer:
-    button_init(&L.layer_prev, r_texture_init_file("res/button_prev.png", NULL));
+    button_init(&L.layer_prev, r_texture_new_file("res/button_prev.png", NULL));
 
-    button_init(&L.layer_next, r_texture_init_file("res/button_next.png", NULL));
+    button_init(&L.layer_next, r_texture_new_file("res/button_next.png", NULL));
 
     r_ro_text_init_font55(&L.layer_num, 3, camera.gl);
 
@@ -199,9 +199,9 @@ void toolbar_init() {
 
 
     // tiles
-    button_init(&L.tiles_prev, r_texture_init_file("res/button_prev.png", NULL));
+    button_init(&L.tiles_prev, r_texture_new_file("res/button_prev.png", NULL));
 
-    button_init(&L.tiles_next, r_texture_init_file("res/button_next.png", NULL));
+    button_init(&L.tiles_next, r_texture_new_file("res/button_next.png", NULL));
 
     r_ro_text_init_font55(&L.tiles_num, 3, camera.gl);
 
