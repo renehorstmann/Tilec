@@ -1,5 +1,5 @@
-#ifndef BUTTON_H
-#define BUTTON_H
+#ifndef TILEC_BUTTON_H
+#define TILEC_BUTTON_H
 
 #include <stdbool.h>
 #include "e/input.h"
@@ -17,4 +17,4 @@ bool button_pressed(rRoSingle *self, ePointer_s pointer);
 
 bool button_toggled(rRoSingle *self, ePointer_s pointer);
 
-#endif //BUTTON_H
+#endif //TILEC_BUTTON_H
