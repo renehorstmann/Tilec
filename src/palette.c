@@ -16,10 +16,10 @@
 
 static struct {
     Color_s palette[PALETTE_SIZE];
-    rRoBatch palette_ro;
-    rRoSingle palette_clear_ro;
-    rRoSingle select_ro;
-    rRoSingle background_ro;
+    RoBatch palette_ro;
+    RoSingle palette_clear_ro;
+    RoSingle select_ro;
+    RoSingle background_ro;
     int last_selected;
     float last_camera_width, last_camera_height;
     int tile_id;
@@ -51,18 +51,18 @@ static mat4 setup_palette_color_pose(int r, int c) {
 
 void palette_init() {
     L.tile_id = 1;
-    r_ro_batch_init(&L.palette_ro, PALETTE_SIZE, camera.gl, tiles.textures[L.tile_id - 1]);
+    ro_batch_init(&L.palette_ro, PALETTE_SIZE, camera.gl, tiles.textures[L.tile_id - 1]);
     L.palette_ro.owns_tex = false; // tiles.h owns
 
-    r_ro_single_init(&L.palette_clear_ro, camera.gl, r_texture_new_file("res/toolbar_color_bg.png", NULL));
+    ro_single_init(&L.palette_clear_ro, camera.gl, r_texture_new_file("res/toolbar_color_bg.png", NULL));
 
     Color_s buf[4];
     buf[0] = buf[3] = color_from_hex("#99aa99");
     buf[1] = buf[2] = color_from_hex("#889988");
 
-    r_ro_single_init(&L.background_ro, camera.gl, r_texture_new(2, 2, buf));
+    ro_single_init(&L.background_ro, camera.gl, r_texture_new(2, 2, buf));
 
-    r_ro_single_init(&L.select_ro, camera.gl, r_texture_new_file("res/palette_select.png", NULL));
+    ro_single_init(&L.select_ro, camera.gl, r_texture_new_file("res/palette_select.png", NULL));
     for (int i = 0; i < PALETTE_SIZE; i++) {
         L.palette[i] = (Color_s) {0, 0, L.tile_id, i};
     }
@@ -78,7 +78,7 @@ void palette_init() {
             i++;
         }
     }
-    r_ro_batch_update(&L.palette_ro);
+    ro_batch_update(&L.palette_ro);
 
     palette_set_color(-1);
     brush.secondary_color = brush.current_color;
@@ -119,14 +119,14 @@ void palette_update(float dtime) {
     else
         L.select_ro.rect.pose = L.palette_ro.rects[L.last_selected].pose;
 
-    r_ro_batch_update(&L.palette_ro);
+    ro_batch_update(&L.palette_ro);
 }
 
 void palette_render() {
-    r_ro_single_render(&L.background_ro);
-    r_ro_batch_render(&L.palette_ro);
-    r_ro_single_render(&L.palette_clear_ro);
-    r_ro_single_render(&L.select_ro);
+    ro_single_render(&L.background_ro);
+    ro_batch_render(&L.palette_ro);
+    ro_single_render(&L.palette_clear_ro);
+    ro_single_render(&L.select_ro);
 }
 
 
@@ -179,7 +179,7 @@ void palette_change_tiles(bool next) {
     if (L.tile_id > tiles.size)
         L.tile_id = 1;
 
-    r_ro_batch_set_texture(&L.palette_ro, tiles.textures[L.tile_id - 1]);
+    ro_batch_set_texture(&L.palette_ro, tiles.textures[L.tile_id - 1]);
 
     for (int i = 0; i < PALETTE_SIZE; i++) {
         L.palette[i] = (Color_s) {0, 0, L.tile_id, i};

@@ -13,8 +13,8 @@ struct AnimationGlobals_s animation;
 
 
 static struct {
-    rRoText horsimann;
-    rRoSingle ro;
+    RoText horsimann;
+    RoSingle ro;
     int mcols, mrows;
     int frames;
     float time;
@@ -50,15 +50,15 @@ void animation_init(int multi_cols, int multi_rows, int frames, float fps) {
     Image *img = canvas_image();
     GLuint tex = r_texture_new(img->cols, img->rows, image_layer(img, canvas.current_layer));
 
-    r_ro_single_init(&L.ro, camera.gl, tex);
+    ro_single_init(&L.ro, camera.gl, tex);
     u_pose_set_w(&L.ro.rect.uv, 1.0 / frames);
 
-    r_ro_text_init_font55(&L.horsimann, 9, camera.gl);
+    ro_text_init_font55(&L.horsimann, 9, camera.gl);
     vec4 color = {{0.25, 0.25, 0.25, 1}};
     for (int i = 0; i < L.horsimann.ro.num; i++) {
         L.horsimann.ro.rects[i].color = color;
     }
-    r_ro_text_set_text(&L.horsimann, "horsimann");
+    ro_text_set_text(&L.horsimann, "horsimann");
 
 }
 
@@ -81,14 +81,14 @@ void animation_update(float dtime) {
 
 void animation_render() {
     if (!animation.show) {
-        r_ro_text_render(&L.horsimann);
+        ro_text_render(&L.horsimann);
         return;
     }
 
     for (int r = 0; r < L.mrows; r++) {
         for (int c = 0; c < L.mcols; c++) {
             set_pose(c, r);
-            r_ro_single_render(&L.ro);
+            ro_single_render(&L.ro);
         }
     }
 }
