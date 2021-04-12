@@ -23,7 +23,7 @@
 // canvas size
 #define COLS 128
 #define ROWS 32
-#define LAYERS 2
+#define LAYERS 3
 
 
 // animation + tiles
