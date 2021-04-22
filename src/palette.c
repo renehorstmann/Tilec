@@ -4,7 +4,7 @@
 #include "r/r.h"
 #include "u/pose.h"
 #include "mathc/sca/int.h"
-#include "utilc/alloc.h"
+#include "rhc/error.h"
 
 #include "tiles.h"
 #include "camera.h"
@@ -15,7 +15,7 @@
 
 
 static struct {
-    Color_s palette[PALETTE_SIZE];
+    uColor_s palette[PALETTE_SIZE];
     RoBatch palette_ro;
     RoSingle palette_clear_ro;
     RoSingle select_ro;
@@ -51,30 +51,28 @@ static mat4 setup_palette_color_pose(int r, int c) {
 
 void palette_init() {
     L.tile_id = 1;
-    ro_batch_init(&L.palette_ro, PALETTE_SIZE, camera.gl, tiles.textures[L.tile_id - 1]);
+    L.palette_ro = ro_batch_new(PALETTE_SIZE, camera.gl, tiles.textures[L.tile_id - 1]);
     L.palette_ro.owns_tex = false; // tiles.h owns
 
-    ro_single_init(&L.palette_clear_ro, camera.gl, r_texture_new_file("res/toolbar_color_bg.png", NULL));
+    L.palette_clear_ro = ro_single_new(camera.gl, r_texture_new_file(1, 1, "res/toolbar_color_bg.png"));
 
-    Color_s buf[4];
-    buf[0] = buf[3] = color_from_hex("#99aa99");
-    buf[1] = buf[2] = color_from_hex("#889988");
+    uColor_s buf[4];
+    buf[0] = buf[3] = u_color_from_hex("#99aa99");
+    buf[1] = buf[2] = u_color_from_hex("#889988");
 
-    ro_single_init(&L.background_ro, camera.gl, r_texture_new(2, 2, buf));
+    L.background_ro = ro_single_new(camera.gl, r_texture_new(2, 2, 1, 1, buf));
 
-    ro_single_init(&L.select_ro, camera.gl, r_texture_new_file("res/palette_select.png", NULL));
+    L.select_ro = ro_single_new(camera.gl, r_texture_new_file(1, 1, "res/palette_select.png"));
     for (int i = 0; i < PALETTE_SIZE; i++) {
-        L.palette[i] = (Color_s) {0, 0, L.tile_id, i};
+        L.palette[i] = (uColor_s) {0, 0, L.tile_id, i};
     }
 
 
-    // setup uvs
-    float w = 1.0 / TILES_COLS;
-    float h = 1.0 / TILES_ROWS;
+    // setup sprites
     int i = 0;
     for (int r = 0; r < TILES_ROWS; r++) {
         for (int c = 0; c < TILES_COLS; c++) {
-            L.palette_ro.rects[i].uv = u_pose_new(c * w, r * h, w, h);
+            L.palette_ro.rects[i].sprite = (vec2) {{c, r}};
             i++;
         }
     }
@@ -166,7 +164,7 @@ int palette_get_tile_id() {
 
 void palette_set_color(int index) {
     if (index == -1)
-        brush.current_color = (Color_s) {0};
+        brush.current_color = U_COLOR_TRANSPARENT;
     else
         brush.current_color = L.palette[index];
     L.last_selected = index;
@@ -182,7 +180,7 @@ void palette_change_tiles(bool next) {
     ro_batch_set_texture(&L.palette_ro, tiles.textures[L.tile_id - 1]);
 
     for (int i = 0; i < PALETTE_SIZE; i++) {
-        L.palette[i] = (Color_s) {0, 0, L.tile_id, i};
+        L.palette[i] = (uColor_s) {0, 0, L.tile_id, i};
     }
 
     palette_set_color(-1);

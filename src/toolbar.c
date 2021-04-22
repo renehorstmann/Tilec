@@ -1,22 +1,19 @@
 #include <assert.h>
-
 #include "r/texture.h"
 #include "r/ro_text.h"
 #include "u/pose.h"
 #include "mathc/float.h"
-
 #include "button.h"
-#include "tiles.h"
 #include "camera.h"
 #include "brush.h"
-#include "brush_shape.h"
+#include "brushshape.h"
 #include "canvas.h"
-#include "canvas_camera_control.h"
+#include "canvascamctrl.h"
 #include "animation.h"
 #include "selection.h"
 #include "palette.h"
 #include "savestate.h"
-#include "io.h"
+#include "tiles.h"
 #include "toolbar.h"
 
 #define MODES 7
@@ -56,8 +53,7 @@ static struct {
     RoSingle shape;
     float shape_minus_time, shape_plus_time;
 
-    RoSingle color_drop;
-    GLuint color_clear_tex;
+    RoSingle color_bg, color_drop;
 
     RoSingle selection_copy;
     RoSingle selection_cut;
@@ -84,7 +80,7 @@ static RoSingle *tool_append(float x, float y, const char *btn_file) {
     assert(L.tools_size < TOOL_MAX);
     Tool *self = &L.tools[L.tools_size++];
 
-    button_init(&self->btn, r_texture_new_file(btn_file, NULL));
+    self->btn = ro_single_new(camera.gl, r_texture_new_file(2, 1, btn_file));
     self->x = x;
     self->y = y;
     return &self->btn;
@@ -163,50 +159,48 @@ void toolbar_init() {
 
 
     // shape kernel:
-    ro_single_init(&L.shape, camera.gl, brush_shape_create_kernel_texture(COLOR_TRANSPARENT, COLOR_WHITE));
+    L.shape = ro_single_new(camera.gl, brushshape_create_kernel_texture(U_COLOR_TRANSPARENT, U_COLOR_WHITE));
 
     // secondar color:
-    L.color_clear_tex = r_texture_new_file("res/toolbar_color_bg.png", NULL);
+    L.color_bg = ro_single_new(camera.gl, r_texture_new_file(1, 1, "res/toolbar_color_bg.png"));
 
-    ro_single_init(&L.color_drop, camera.gl, tiles.textures[0]);
-    L.color_drop.owns_tex = false; // tiles.h owns
-
+    L.color_drop = ro_single_new(camera.gl, r_texture_new_file(1, 1, "res/color_drop.png"));
 
 
     // selection buttons:
-    button_init(&L.selection_copy, r_texture_new_file("res/button_copy.png", NULL));
+    L.selection_copy = ro_single_new(camera.gl, r_texture_new_file(2, 1, "res/button_copy.png"));
 
-    button_init(&L.selection_cut, r_texture_new_file("res/button_cut.png", NULL));
+    L.selection_cut = ro_single_new(camera.gl, r_texture_new_file(2, 1, "res/button_cut.png"));
 
-    button_init(&L.selection_rotate_left, r_texture_new_file("res/button_rotate_left.png", NULL));
+    L.selection_rotate_left = ro_single_new(camera.gl, r_texture_new_file(2, 1, "res/button_rotate_left.png"));
 
-    button_init(&L.selection_rotate_right, r_texture_new_file("res/button_rotate_right.png", NULL));
+    L.selection_rotate_right = ro_single_new(camera.gl, r_texture_new_file(2, 1, "res/button_rotate_right.png"));
 
-    button_init(&L.selection_mirror_horizontal, r_texture_new_file("res/button_horizontal.png", NULL));
+    L.selection_mirror_horizontal = ro_single_new(camera.gl, r_texture_new_file(2, 1, "res/button_horizontal.png"));
 
-    button_init(&L.selection_mirror_vertical, r_texture_new_file("res/button_vertical.png", NULL));
+    L.selection_mirror_vertical = ro_single_new(camera.gl, r_texture_new_file(2, 1, "res/button_vertical.png"));
 
-    button_init(&L.selection_ok, r_texture_new_file("res/button_ok.png", NULL));
+    L.selection_ok = ro_single_new(camera.gl, r_texture_new_file(2, 1, "res/button_ok.png"));
 
     // layer:
-    button_init(&L.layer_prev, r_texture_new_file("res/button_prev.png", NULL));
+    L.layer_prev = ro_single_new(camera.gl, r_texture_new_file(2, 1, "res/button_prev.png"));
 
-    button_init(&L.layer_next, r_texture_new_file("res/button_next.png", NULL));
+    L.layer_next = ro_single_new(camera.gl, r_texture_new_file(2, 1, "res/button_next.png"));
 
-    ro_text_init_font55(&L.layer_num, 3, camera.gl);
+    L.layer_num = ro_text_new_font55(3, camera.gl);
 
-    ro_text_init_font55(&L.layer_title, 5, camera.gl);
+    L.layer_title = ro_text_new_font55(5, camera.gl);
     ro_text_set_text(&L.layer_title, "layer");
 
 
     // tiles
-    button_init(&L.tiles_prev, r_texture_new_file("res/button_prev.png", NULL));
+    L.tiles_prev = ro_single_new(camera.gl, r_texture_new_file(2, 1, "res/button_prev.png"));
 
-    button_init(&L.tiles_next, r_texture_new_file("res/button_next.png", NULL));
+    L.tiles_next = ro_single_new(camera.gl, r_texture_new_file(2, 1, "res/button_next.png"));
 
-    ro_text_init_font55(&L.tiles_num, 3, camera.gl);
+    L.tiles_num = ro_text_new_font55(3, camera.gl);
 
-    ro_text_init_font55(&L.tiles_title, 5, camera.gl);
+    L.tiles_title = ro_text_new_font55(5, camera.gl);
     ro_text_set_text(&L.tiles_title, "tiles");
 }
 
@@ -218,22 +212,11 @@ void toolbar_update(float dtime) {
 
     // shape kernel:
     L.shape.rect.pose = pose16(-22, 10);  // should be 16x16
-    L.shape.rect.uv = brush_shape_kernel_texture_uv(brush.shape);
+    L.shape.rect.sprite.y = brush.shape;
 
     // secondary color:    
-    L.color_drop.rect.pose = pose16(64, 9);
-    int tile_id = brush.secondary_color.b;
-    if (tile_id == 0) {
-        ro_single_set_texture(&L.color_drop, L.color_clear_tex);
-        L.color_drop.rect.uv = mat4_eye();
-    } else {
-        ro_single_set_texture(&L.color_drop, tiles.textures[tile_id - 1]);
-        float w = 1.0 / TILES_COLS;
-        float h = 1.0 / TILES_ROWS;
-        int c = brush.secondary_color.a % TILES_COLS;
-        int r = brush.secondary_color.a / TILES_COLS;
-        L.color_drop.rect.uv = u_pose_new(c * w, r * h, w, h);
-    }
+    L.color_bg.rect.pose = L.color_drop.rect.pose = pose16(64, 9);
+    L.color_drop.rect.color = u_color_to_vec4(brush.secondary_color);
 
     // selection buttons:
     if(toolbar.show_selection_ok)
@@ -247,7 +230,6 @@ void toolbar_update(float dtime) {
     L.selection_mirror_vertical.rect.pose = pose16(-10, 43);
     L.selection_ok.rect.pose = pose16(26, 43);
 
-    // layer:
     char buf[8];
     sprintf(buf, "%d", canvas.current_layer);
     vec2 size = ro_text_set_text(&L.layer_num, buf);
@@ -278,7 +260,6 @@ void toolbar_update(float dtime) {
         u_pose_set_xy(&L.tiles_title.pose, floorf(camera_right() - 90), 85);
     }
 
-
     // shape longpress:
     if (button_is_pressed(L.shape_minus)) {
         L.shape_minus_time += dtime;
@@ -295,7 +276,7 @@ void toolbar_update(float dtime) {
         }
     } else
         L.shape_plus_time = 0;
-    
+
 
     // unpress cpy button if selection ok is toggled
     if(!L.prev_show_selection_ok && toolbar.show_selection_ok)
@@ -312,6 +293,7 @@ void toolbar_render() {
     ro_single_render(&L.shape);
 
     // secondary color:
+    ro_single_render(&L.color_bg);
     ro_single_render(&L.color_drop);
 
     // selection buttons:
@@ -328,7 +310,7 @@ void toolbar_render() {
         ro_single_render(&L.selection_ok);
     }
 
-    if (canvas_image()->layers > 1) {
+    if (canvas_image().layers > 1) {
         ro_single_render(&L.layer_prev);
         ro_single_render(&L.layer_next);
         ro_text_render(&L.layer_num);
@@ -350,36 +332,41 @@ bool toolbar_pointer_event(ePointer_s pointer) {
 
 
     if (button_clicked(L.undo, pointer)) {
+        log_info("toolbar: undo");
         savestate_undo();
     }
 
     if (button_clicked(L.clear, pointer)) {
+        log_info("toolbar: clear");
         canvas_clear();
     }
 
     if (button_clicked(L.import, pointer)) {
+        log_info("toolbar: import");
         brush_set_selection_active(false, true);
         if (toolbar.show_selection_ok) {
             canvas_redo_image();
         }
         toolbar.show_selection_copy_cut = false;
 
-        Image *img = io_load_image(io.default_import_file, 1);
-        button_set_pressed(L.selection, img != NULL);
-        toolbar.show_selection_ok = img != NULL;
+        uImage img = u_image_new_file(1, canvas.default_import_file);
+        button_set_pressed(L.selection, u_image_valid(img));
+        toolbar.show_selection_ok = u_image_valid(img);
 
 
-        if (img) {
-            selection_init(0, 0, img->cols, img->rows);
+        if (u_image_valid(img)) {
+            selection_init(0, 0, img.cols, img.rows);
             selection_copy(img, 0);
             selection_paste(canvas_image(), canvas.current_layer);
-            image_delete(img);
+            u_image_kill(&img);
             brush.selection_mode = BRUSH_SELECTION_PASTE;
             brush_set_selection_active(true, false);
         }
+        log_trace("toolbar: import finished");
     }
 
     if (button_toggled(L.selection, pointer)) {
+        log_info("toolbar: selection");
         bool pressed = button_is_pressed(L.selection);
         brush_set_selection_active(pressed, true);
         button_set_pressed(&L.selection_copy, false);
@@ -393,8 +380,10 @@ bool toolbar_pointer_event(ePointer_s pointer) {
     }
 
     if (button_toggled(L.grid, pointer)) {
+        log_info("toolbar: grid");
         bool pressed = button_is_pressed(L.grid);
         canvas.show_grid = pressed;
+
         if (pressed) {
             canvas.alpha = L.grid_status ? 1 : 0.5;
             L.grid_status = !L.grid_status;
@@ -402,20 +391,24 @@ bool toolbar_pointer_event(ePointer_s pointer) {
     }
 
     if (button_clicked(L.camera, pointer)) {
-        canvas_camera_control_set_home();
+        log_info("toolbar: camera");
+        canvascamctrl_set_home();
     }
 
     if (button_toggled(L.animation, pointer)) {
+        log_info("toolbar: animation");
         animation.show = button_is_pressed(L.animation);
     }
 
     if (button_toggled(L.shade, pointer)) {
+        log_info("toolbar: shade");
         brush.shading_active = button_is_pressed(L.shade);
     }
 
 
     for (int i = 0; i < MODES; i++) {
         if (button_pressed(L.modes[i], pointer)) {
+            log_info("toolbar: mode %i", i);
             unpress(L.modes, MODES, i);
 
             if (i == 0)
@@ -436,12 +429,14 @@ bool toolbar_pointer_event(ePointer_s pointer) {
     }
 
     if (button_clicked(L.shape_minus, pointer)) {
+        log_info("toolbar: shape_minus");
         brush.shape--;
         if (brush.shape < 0)
             brush.shape = 0;
     }
 
     if (button_clicked(L.shape_plus, pointer)) {
+        log_info("toolbar: shape_plus");
         brush.shape++;
         if (brush.shape >= BRUSH_NUM_SHAPES)
             brush.shape = BRUSH_NUM_SHAPES - 1;
@@ -451,6 +446,7 @@ bool toolbar_pointer_event(ePointer_s pointer) {
 
     // secondary color:
     if (pointer.action == E_POINTER_DOWN && u_pose_aa_contains(L.color_drop.rect.pose, pointer.pos.xy)) {
+        log_info("toolbar: secondary_color");
         brush.secondary_color = brush.current_color;
     }
 
@@ -458,6 +454,7 @@ bool toolbar_pointer_event(ePointer_s pointer) {
     // selection buttons:
     if (toolbar.show_selection_copy_cut) {
         if (button_toggled(&L.selection_copy, pointer)) {
+            log_info("toolbar: selection_copy");
             bool pressed = button_is_pressed(&L.selection_copy);
 
             if (pressed) {
@@ -467,6 +464,7 @@ bool toolbar_pointer_event(ePointer_s pointer) {
         }
 
         if (button_toggled(&L.selection_cut, pointer)) {
+            log_info("toolbar: selection_cut");
             bool pressed = button_is_pressed(&L.selection_cut);
 
             if (pressed) {
@@ -479,19 +477,23 @@ bool toolbar_pointer_event(ePointer_s pointer) {
     if (toolbar.show_selection_ok) {
         bool changed = false;
         if (button_clicked(&L.selection_rotate_left, pointer)) {
+            log_info("toolbar: selection_rotate_left");
             selection_rotate(false);
             changed = true;
         }
         if (button_clicked(&L.selection_rotate_right, pointer)) {
+            log_info("toolbar: selection_rotate_right");
             selection_rotate(true);
             changed = true;
         }
 
         if (button_clicked(&L.selection_mirror_horizontal, pointer)) {
+            log_info("toolbar: selection_mirror_horizontal");
             selection_mirror(false);
             changed = true;
         }
         if (button_clicked(&L.selection_mirror_vertical, pointer)) {
+            log_info("toolbar: selection_mirror_vertical");
             selection_mirror(true);
             changed = true;
         }
@@ -502,10 +504,12 @@ bool toolbar_pointer_event(ePointer_s pointer) {
         }
         
         if (button_clicked(&L.selection_copy, pointer)) {
+            log_info("toolbar: selection_copy");
             canvas_save();
         }
 
         if (button_clicked(&L.selection_ok, pointer)) {
+            log_info("toolbar: selection_ok");
             canvas_save();
             brush_set_selection_active(false, true);
             toolbar.show_selection_ok = false;
@@ -514,12 +518,14 @@ bool toolbar_pointer_event(ePointer_s pointer) {
     }
 
 
-    if (canvas_image()->layers > 1) {
+    if (canvas_image().layers > 1) {
         if (button_clicked(&L.layer_prev, pointer)) {
+            log_info("toolbar: layer_prev");
             canvas.current_layer = sca_max(0, canvas.current_layer - 1);
         }
         if (button_clicked(&L.layer_next, pointer)) {
-            canvas.current_layer = sca_min(canvas_image()->layers - 1, canvas.current_layer + 1);
+            log_info("toolbar: layer_next");
+            canvas.current_layer = sca_min(canvas_image().layers - 1, canvas.current_layer + 1);
         }
     }
 

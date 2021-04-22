@@ -1,6 +1,5 @@
 #include "r/texture.h"
-#include "utilc/assume.h"
-#include "io.h"
+#include "rhc/error.h"
 #include "tiles.h"
 
 
@@ -13,15 +12,15 @@ void tiles_init() {
         char file[128];
         sprintf(file, "tiles/tile_%02i.png", tile_id);
 
-        Image *img = io_load_image(file, 2);
-        if (!img)
+        uImage img = u_image_new_file(2, file);
+        if (!u_image_valid(img))
             break;
 
-        assume(img->cols == TILES_COLS * TILES_SIZE
-               && img->rows == TILES_ROWS * TILES_SIZE,
+        assume(img.cols == TILES_COLS * TILES_SIZE
+               && img.rows == TILES_ROWS * TILES_SIZE,
                "wrong tiles size");
 
-        GLuint tex = r_texture_new(img->cols, img->rows, image_layer(img, 0));
+        rTexture tex = r_texture_new(img.cols, img.rows, TILES_COLS, TILES_ROWS, u_image_layer(img, 0));
 
 
         tiles.imgs[tiles.size] = img;
@@ -31,7 +30,7 @@ void tiles_init() {
         tile_id++;
         tiles.size++;
     }
-    SDL_Log("tiles loaded: %i", tiles.size);
+    log_info("tiles: loaded %i", tiles.size);
     if (tiles.size == 0)
-        SDL_Log("WARNING: 0 tiles loaded! Put some into tiles/tile_xx.png, starting with xx=01");
+        log_error("tiles: WARNING: 0 tiles loaded! Put some into tiles/tile_xx.png, starting with xx=01");
 }

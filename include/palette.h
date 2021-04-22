@@ -1,9 +1,8 @@
 #ifndef TILEC_PALETTE_H
 #define TILEC_PALETTE_H
 
-#include <stdbool.h>
 #include "e/input.h"
-#include "color.h"
+#include "u/color.h"
 
 
 void palette_init();
