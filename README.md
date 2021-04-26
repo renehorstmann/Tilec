@@ -32,5 +32,5 @@ Compiling with Mingw (msys2).
 Currently not working with cmake, but with the following gcc call.
 I had to put all source files into one dir (from src/e/*, r/*, p/*, u/* into src/*) to get the linker happy.
 ```
-gcc -o tilec src/* -Iinclude $(sdl2-config --cflags --libs) -lSDL2_image -lSDL2_ttf -lglew32 -lopengl32 -lglu32 -DUSING_GLEW
+gcc -o tilec src/* -Iinclude $(sdl2-config --cflags --libs) -lSDL2_image -lSDL2_ttf -lglew32 -lopengl32 -lglu32 -DOPTION_GLEW -DOPTION_SDL
 ```
