@@ -21,7 +21,7 @@
 //
 
 // canvas size
-#define COLS 128
+#define COLS 256
 #define ROWS 32
 #define LAYERS 3
 
@@ -44,7 +44,7 @@
 
 
 // uncomment to change the file locations:
-// #define IMAGE_FILE "res/button_play.png"
+// #define IMAGE_FILE "../JumpHare/res/levels/level_01.png"
 // #define IMPORT_FILE "res/color_drop.png"
 
 //
