@@ -8,11 +8,20 @@
 
 struct CameraGlobals_s camera;
 
+
+//
+// private
+//
+
 static struct {
     float real_pixel_per_pixel;
     float left, right, bottom, top;
 } L;
 
+
+//
+// public
+//
 
 void camera_init() {
     assert(CAMERA_SIZE % 2 == 0 && "CAMERA_SIZE must be even");

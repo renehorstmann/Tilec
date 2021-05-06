@@ -8,10 +8,20 @@
 
 struct CanvasCameraGlobals_s canvascam;
 
+
+//
+// peivate
+//
+
 static struct {
     float real_pixel_per_pixel;
     float left, right, bottom, top;
 } L;
+
+
+//
+// public
+//
 
 
 void canvascam_init() {

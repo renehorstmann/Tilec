@@ -17,6 +17,11 @@
 #define MAX_LAYERS 16
 #define SELECTION_BORDER_FACTOR 4
 
+
+//
+// private
+//
+
 typedef struct {
     int cols, rows, layers;
     uColor_s data[];
@@ -174,6 +179,11 @@ static void load_state(const void *data, size_t size) {
 }
 
 
+
+//
+// public
+//
+
 void canvas_init(int cols, int rows, int layers, int grid_cols, int grid_rows) {
     assume(layers <= MAX_LAYERS, "too many layers");
     canvas.alpha = 1.0;
@@ -185,7 +195,7 @@ void canvas_init(int cols, int rows, int layers, int grid_cols, int grid_rows) {
 
 
     L.image = u_image_new_zeros(cols, rows, layers);
-    canvas.current_layer = 0;
+    canvas.current_layer = layers>=2? 1 : 0;
 
     init_render_objects();
 

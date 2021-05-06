@@ -14,6 +14,10 @@
 #define PALETTE_SIZE (TILES_COLS * TILES_ROWS)
 
 
+//
+// private
+//
+
 static struct {
     uColor_s palette[PALETTE_SIZE];
     RoBatch palette_ro;
@@ -48,6 +52,10 @@ static mat4 setup_palette_color_pose(int r, int c) {
     return pose;
 }
 
+
+//
+// public
+//
 
 void palette_init() {
     L.tile_id = 1;
