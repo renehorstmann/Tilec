@@ -18,19 +18,16 @@
 #define SELECTION_BORDER_FACTOR 4
 
 
-//
-// private
-//
-
-typedef struct {
-    int cols, rows, layers;
-    uColor_s data[];
-} SaveImage;
 
 struct CanvasGlobals_s canvas = {
         .default_image_file = "tilemap.png",
         .default_import_file = "import.png"
 };
+
+
+//
+// private
+//
 
 static struct {
     mat4 pose;
@@ -156,25 +153,36 @@ static void set_pixel_tile(int layer, int c, int r) {
 
 static void save_state() {
     log_info("canvas: save_state");
-    size_t img_size = sizeof(SaveImage) + u_image_data_size(L.image);
-    SaveImage *img = rhc_malloc_raising(img_size);
+    
+    // costum uImage with data concatenated
+    size_t img_size = sizeof(uImage) + u_image_data_size(L.image);
+    char *data = rhc_malloc_raising(img_size);
+    uImage *img = (uImage *) data;
+    img->data = (uColor_s *) (data + sizeof(uImage));
     img->cols = L.image.cols;
     img->rows = L.image.rows;
     img->layers = L.image.layers;
-    memcpy(img->data, L.image.data, u_image_data_size(L.image));
+    img->allocator = allocator_new_empty_raising();
+    
+    u_image_copy(*img, L.image);
     savestate_save_data(img, img_size);
+    
+    // costum uImage
     rhc_free(img);
 }
 
 static void load_state(const void *data, size_t size) {
     log_info("canvas: load_state");
     // todo: check new layers, rows, cols
+    assume(sizeof(uImage) + u_image_data_size(L.image) == size, "invalid data + size pair");
+    
     u_image_kill(&L.image);
-    const SaveImage *img = data;
-    L.image = u_image_new_empty(img->cols, img->rows, img->layers);
-    assume(sizeof(SaveImage) + u_image_data_size(L.image) == size, "invalid data + size pair");
-    memcpy(L.image.data, img->data, u_image_data_size(L.image));
-    u_image_copy(L.prev_image, L.image);
+    
+    // costum uImage with data concatenated
+    uImage *img = (uImage *) data;
+    img->data = (uColor_s *) ((char*) data + sizeof(uImage));
+    
+    L.image = u_image_new_clone(*img);
     u_image_save_file(canvas_image(), canvas.default_image_file);
 }
 

@@ -144,7 +144,7 @@ bool palette_pointer_event(ePointer_s pointer) {
         return true;
 
     for (int i = 0; i < PALETTE_SIZE; i++) {
-        if (u_pose_aa_contains(L.palette_ro.rects[i].pose, pointer.pos.xy)) {
+        if (u_pose_contains(L.palette_ro.rects[i].pose, pointer.pos)) {
             palette_set_color(i);
             return true;
         }
