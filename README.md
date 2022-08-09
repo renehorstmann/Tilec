@@ -1,6 +1,11 @@
 # Tilec
 An opensource tile map editor in C, using SDL2 and OpenGL, also running on Android.
 
+> Deprecated!
+>
+> Have a look at the [Pixelc](https://github.com/renehorstmann/Pixelc) Tilec Mod instead
+
+
 Based on [some](https://github.com/renehorstmann/some) framework.
 
 Forked from [Pixelc](https://github.com/renehorstmann/Pixelc)
